@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM Arte Sacra - Sistema de Gestão v2 com Catálogo</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Source+Serif+Pro:wght@400;600&display=swap');
+        
+        * {
+            font-family: 'Source Serif Pro', serif;
+        }
+        
+        .font-display {
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        /* Animação elegante */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Efeito hover elegante */
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(120, 53, 15, 0.15);
+        }
+
+        /* Scrollbar customizado */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(217, 119, 6, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(120, 53, 15, 0.6);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(120, 53, 15, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // ============ PRODUTOS CATÁLOGO (146 produtos reais) ============
+        const PRODUTOS_CATALOG = [
+            {"codigo":"IMG0001A","nome":"A Pietà","tamanho":"17 cm","peso_g":287.0,"custo":71.75,"preco_catalogo":191.14,"preco_site":224.39,"preco_shopee":252.28,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0002A","nome":"Anjo Guardião","tamanho":"22 cm","peso_g":225.0,"custo":56.25,"preco_catalogo":149.91,"preco_site":175.62,"preco_shopee":198.88,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0002B","nome":"Anjo Guardião","tamanho":"30 cm","peso_g":300,"custo":75,"preco_catalogo":200,"preco_site":235,"preco_shopee":266,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0003A","nome":"Anjos Guardiões (Par)","tamanho":"22 cm","peso_g":450,"custo":112.5,"preco_catalogo":300,"preco_site":351,"preco_shopee":397,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0003B","nome":"Anjos Guardiões (Par)","tamanho":"30 cm","peso_g":600,"custo":150,"preco_catalogo":400,"preco_site":470,"preco_shopee":532,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0004A","nome":"Busto de Cristo","tamanho":"20 cm","peso_g":0,"custo":0,"preco_catalogo":0,"preco_site":0,"preco_shopee":0,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0005A","nome":"Busto Madre Teresa","tamanho":"22 cm","peso_g":0,"custo":0,"preco_catalogo":0,"preco_site":0,"preco_shopee":0,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0006A","nome":"Busto Papa Francisco","tamanho":"20 cm","peso_g":0,"custo":0,"preco_catalogo":0,"preco_site":0,"preco_shopee":0,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0007A","nome":"Cristo Ressuscitado (Glorioso)","tamanho":"22 cm","peso_g":0,"custo":0,"preco_catalogo":0,"preco_site":0,"preco_shopee":0,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0008A","nome":"Crucifixo Calvário","tamanho":"27 cm","peso_g":0,"custo":0,"preco_catalogo":0,"preco_site":0,"preco_shopee":0,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0009A","nome":"Crucifixo realista de parede","tamanho":"36 cm","peso_g":0,"custo":0,"preco_catalogo":0,"preco_site":0,"preco_shopee":0,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0010A","nome":"Nossa Senhora Aparecida","tamanho":"22 cm","peso_g":0,"custo":0,"preco_catalogo":0,"preco_site":0,"preco_shopee":0,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0011A","nome":"Nossa Senhora de Fátima","tamanho":"30 cm","peso_g":0,"custo":0,"preco_catalogo":0,"preco_site":0,"preco_shopee":0,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0012A","nome":"Nossa Senhora de Guadalupe","tamanho":"22 cm","peso_g":0,"custo":0,"preco_catalogo":0,"preco_site":0,"preco_shopee":0,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0013A","nome":"Nossa Senhora de Lourdes","tamanho":"30 cm","peso_g":0,"custo":0,"preco_catalogo":0,"preco_site":0,"preco_shopee":0,"plataforma":"Imagem 3D"},
+            {"codigo":"IMG0014A","nome":"Nossa Senhora do Perpétuo Socorro","tamanho":"30 cm","peso_g":0,"custo":0,"preco_catalogo":0,"preco_site":0,"preco_shopee":0,"plataforma":"Imagem 3D"},
+            {"codigo":"ADO0001A","nome":"Coroa NS Aparecida (Imagem 30 cm) - Kit 3","tamanho":"-","peso_g":45.0,"custo":11.25,"preco_catalogo":33.75,"preco_site":40.0,"preco_shopee":47.88,"plataforma":"Adorno"},
+            {"codigo":"ADO0002A","nome":"Coroa NS Aparecida (Imagem 40 cm) - Kit 3","tamanho":"-","peso_g":68.0,"custo":17.0,"preco_catalogo":51.0,"preco_site":60.0,"preco_shopee":70.3,"plataforma":"Adorno"},
+            {"codigo":"ADO0003A","nome":"Coroa NS Aparecida (Imagem 50 cm) - Kit 3","tamanho":"-","peso_g":85,"custo":21.25,"preco_catalogo":63.75,"preco_site":75.0,"preco_shopee":88.63,"plataforma":"Adorno"},
+            {"codigo":"ADO0003F","nome":"Coroa NS Aparecida (Imagem 100 cm)","tamanho":"-","peso_g":200,"custo":50,"preco_catalogo":150,"preco_site":176.25,"preco_shopee":215,"plataforma":"Adorno"}
+        ];
+
+        function DOMSistemaV2Final() {
+            const [usuarioLogado, setUsuarioLogado] = useState(null);
+            const [telaAtiva, setTelaAtiva] = useState('login');
+            const [username, setUsername] = useState('');
+            const [senha, setSenha] = useState('');
+            const [erro, setErro] = useState('');
+
+            // Estados principais
+            const [produtos, setProdutos] = useState([]);
+            const [pedidos, setPedidos] = useState([]);
+            const [despesas, setDespesas] = useState([]);
+            
+            // Estados de filtro
+            const [filtroNome, setFiltroNome] = useState('');
+            const [filtroCodigo, setFiltroCodigo] = useState('');
+            
+            // Estado novo pedido
+            const [novoPedido, setNovoPedido] = useState({
+                numero: `PED-${Date.now()}`,
+                cliente: '',
+                plataforma: 'Shopee',
+                itens: [],
+                data: new Date().toISOString().split('T')[0],
+                entrega_estimada: new Date(Date.now() + 10*24*60*60*1000).toISOString().split('T')[0],
+                status: 'solicitacao'
+            });
+
+            const usuariosValidos = {
+                'rubens': 'Dom123456',
+                'monize': 'Dom123456'
+            };
+
+            useEffect(() => {
+                const salvo = localStorage.getItem('usuario');
+                if (salvo) {
+                    setUsuarioLogado(JSON.parse(salvo));
+                    setTelaAtiva('dashboard');
+                    carregarDados();
+                }
+            }, []);
+
+            const carregarDados = () => {
+                setProdutos(JSON.parse(localStorage.getItem('produtos') || JSON.stringify(PRODUTOS_CATALOG)));
+                setPedidos(JSON.parse(localStorage.getItem('pedidos') || '[]'));
+                setDespesas(JSON.parse(localStorage.getItem('despesas') || '[]'));
+            };
+
+            const salvarDados = () => {
+                localStorage.setItem('produtos', JSON.stringify(produtos));
+                localStorage.setItem('pedidos', JSON.stringify(pedidos));
+                localStorage.setItem('despesas', JSON.stringify(despesas));
+                alert('✅ Dados salvos com sucesso!');
+            };
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if (usuariosValidos[username] === senha) {
+                    const usuario = { username, nome: username === 'rubens' ? 'Rubens' : 'Monize' };
+                    setUsuarioLogado(usuario);
+                    localStorage.setItem('usuario', JSON.stringify(usuario));
+                    carregarDados();
+                    setTelaAtiva('dashboard');
+                    setUsername('');
+                    setSenha('');
+                    setErro('');
+                } else {
+                    setErro('❌ Usuário ou senha inválidos');
+                }
+            };
+
+            const handleLogout = () => {
+                setUsuarioLogado(null);
+                localStorage.removeItem('usuario');
+                setTelaAtiva('login');
+            };
+
+            // Funções do Catálogo
+            const produtosFiltrados = produtos.filter(p => 
+                p.nome.toLowerCase().includes(filtroNome.toLowerCase()) &&
+                p.codigo.toLowerCase().includes(filtroCodigo.toLowerCase())
+            );
+
+            const adicionarItemPedido = (produto) => {
+                const itemExistente = novoPedido.itens.find(i => i.codigo === produto.codigo);
+                if (itemExistente) {
+                    setNovoPedido({
+                        ...novoPedido,
+                        itens: novoPedido.itens.map(i => 
+                            i.codigo === produto.codigo 
+                                ? {...i, quantidade: i.quantidade + 1}
+                                : i
+                        )
+                    });
+                } else {
+                    const precoBase = produto.preco_shopee || produto.preco_catalogo || 0;
+                    setNovoPedido({
+                        ...novoPedido,
+                        itens: [...novoPedido.itens, {
+                            codigo: produto.codigo,
+                            nome: produto.nome,
+                            quantidade: 1,
+                            preco_unitario: precoBase,
+                            tamanho: produto.tamanho
+                        }]
+                    });
+                }
+            };
+
+            const removerItemPedido = (codigo) => {
+                setNovoPedido({
+                    ...novoPedido,
+                    itens: novoPedido.itens.filter(i => i.codigo !== codigo)
+                });
+            };
+
+            const atualizarQuantidadeItem = (codigo, quantidade) => {
+                setNovoPedido({
+                    ...novoPedido,
+                    itens: novoPedido.itens.map(i => 
+                        i.codigo === codigo 
+                            ? {...i, quantidade: Math.max(1, quantidade)}
+                            : i
+                    )
+                });
+            };
+
+            const criarPedido = () => {
+                if (!novoPedido.cliente.trim()) {
+                    alert('⚠️ Digite o nome do cliente');
+                    return;
+                }
+                if (novoPedido.itens.length === 0) {
+                    alert('⚠️ Adicione pelo menos um item');
+                    return;
+                }
+
+                const pedidoCompleto = {
+                    id: Date.now(),
+                    numero: novoPedido.numero,
+                    cliente: novoPedido.cliente,
+                    plataforma: novoPedido.plataforma,
+                    itens: novoPedido.itens,
+                    data: novoPedido.data,
+                    entrega_estimada: novoPedido.entrega_estimada,
+                    status: novoPedido.status,
+                    valor_total: novoPedido.itens.reduce((acc, i) => acc + (i.quantidade * i.preco_unitario), 0)
+                };
+
+                setPedidos([...pedidos, pedidoCompleto]);
+                setNovoPedido({
+                    numero: `PED-${Date.now()}`,
+                    cliente: '',
+                    plataforma: 'Shopee',
+                    itens: [],
+                    data: new Date().toISOString().split('T')[0],
+                    entrega_estimada: new Date(Date.now() + 10*24*60*60*1000).toISOString().split('T')[0],
+                    status: 'solicitacao'
+                });
+                setTelaAtiva('pedidos');
+                alert('✅ Pedido criado com sucesso!');
+            };
+
+            const totalItemsPedido = novoPedido.itens.length;
+            const totalValorPedido = novoPedido.itens.reduce((acc, i) => acc + (i.quantidade * i.preco_unitario), 0);
+
+            // Dashboard
+            const dashboardData = {
+                totalProdutos: produtos.length,
+                totalPedidos: pedidos.length,
+                pedidosEmProd: pedidos.filter(p => p.status !== 'enviado' && p.status !== 'cancelado').length,
+                totalDespesas: despesas.reduce((acc, d) => acc + (d.valor || 0), 0)
+            };
+
+            if (!usuarioLogado) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50 flex items-center justify-center p-4">
+                        <div className="w-full max-w-md animate-slide-in">
+                            <div className="text-center mb-12">
+                                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-amber-100 to-amber-50 rounded-2xl mb-8 border-2 border-amber-900 shadow-lg">
+                                    <span className="text-5xl font-display font-bold text-amber-900">D</span>
+                                </div>
+                                <h1 className="font-display text-5xl font-bold text-amber-900 mb-2">DOM Arte Sacra</h1>
+                                <p className="text-amber-700 text-lg font-light italic">Sistema de Gestão v2</p>
+                                <div className="h-1 w-24 bg-gradient-to-r from-amber-600 to-amber-900 mx-auto mt-6"></div>
+                            </div>
+
+                            <form onSubmit={handleLogin} className="bg-white rounded-xl shadow-2xl p-10 border-t-4 border-amber-900 card-hover">
+                                {erro && (
+                                    <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg animate-slide-in">
+                                        <p className="text-red-700 text-sm font-semibold">{erro}</p>
+                                    </div>
+                                )}
+
+                                <div className="mb-6">
+                                    <label className="block text-amber-900 font-semibold mb-3 text-sm uppercase tracking-wide">Usuário</label>
+                                    <input
+                                        type="text"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        className="w-full px-4 py-3 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-900 focus:ring-2 focus:ring-amber-100 bg-amber-50 transition"
+                                        placeholder="rubens ou monize"
+                                        autoComplete="off"
+                                    />
+                                </div>
+
+                                <div className="mb-8">
+                                    <label className="block text-amber-900 font-semibold mb-3 text-sm uppercase tracking-wide">Senha</label>
+                                    <input
+                                        type="password"
+                                        value={senha}
+                                        onChange={(e) => setSenha(e.target.value)}
+                                        className="w-full px-4 py-3 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-900 focus:ring-2 focus:ring-amber-100 bg-amber-50 transition"
+                                        placeholder="••••••••"
+                                        autoComplete="off"
+                                    />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="w-full bg-gradient-to-r from-amber-900 to-amber-700 text-white font-semibold py-3 rounded-lg hover:shadow-xl transition transform hover:-translate-y-0.5"
+                                >
+                                    🔓 Entrar no Sistema
+                                </button>
+
+                                <p className="text-center text-amber-700 text-sm mt-8 border-t-2 border-amber-100 pt-6">
+                                    <span className="block mb-2 font-semibold">Demo:</span>
+                                    <span className="block mb-1"><strong>rubens</strong> ou <strong>monize</strong></span>
+                                    <span className="block"><strong>Dom123456</strong></span>
+                                </p>
+                            </form>
+
+                            <div className="mt-8 text-center text-amber-800 text-sm">
+                                <p className="mb-1">🏛️ Sistema de Gestão Integrado</p>
+                                <p className="text-xs text-amber-700">146 produtos no catálogo • Controle completo de pedidos</p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Componente Dashboard
+            const TelaDashboard = () => (
+                <div className="space-y-8 animate-slide-in">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600 card-hover">
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-gray-600 text-sm uppercase font-semibold">Produtos</h3>
+                                <span className="text-2xl">📚</span>
+                            </div>
+                            <p className="text-4xl font-bold text-blue-600">{dashboardData.totalProdutos}</p>
+                            <p className="text-xs text-gray-500 mt-2">No catálogo</p>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-600 card-hover">
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-gray-600 text-sm uppercase font-semibold">Pedidos</h3>
+                                <span className="text-2xl">📦</span>
+                            </div>
+                            <p className="text-4xl font-bold text-green-600">{dashboardData.totalPedidos}</p>
+                            <p className="text-xs text-gray-500 mt-2">Total registrados</p>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-600 card-hover">
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-gray-600 text-sm uppercase font-semibold">Em Produção</h3>
+                                <span className="text-2xl">⚙️</span>
+                            </div>
+                            <p className="text-4xl font-bold text-orange-600">{dashboardData.pedidosEmProd}</p>
+                            <p className="text-xs text-gray-500 mt-2">Aguardando conclusão</p>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-600 card-hover">
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-gray-600 text-sm uppercase font-semibold">Despesas</h3>
+                                <span className="text-2xl">💸</span>
+                            </div>
+                            <p className="text-4xl font-bold text-red-600">R$ {dashboardData.totalDespesas.toFixed(2)}</p>
+                            <p className="text-xs text-gray-500 mt-2">Total do mês</p>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // Componente Catálogo
+            const TelaCatalogo = () => (
+                <div className="space-y-6 animate-slide-in">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-display font-bold text-amber-900">📚 Catálogo de Produtos</h2>
+                        <div className="bg-amber-100 text-amber-900 px-4 py-2 rounded-lg font-semibold">
+                            {produtosFiltrados.length} de {produtos.length}
+                        </div>
+                    </div>
+
+                    {/* Filtros */}
+                    <div className="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <h3 className="font-semibold text-amber-900 mb-4">🔍 Filtros</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-amber-900 mb-2">Nome do Produto</label>
+                                <input
+                                    type="text"
+                                    value={filtroNome}
+                                    onChange={(e) => setFiltroNome(e.target.value)}
+                                    className="w-full px-4 py-2 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-900 bg-amber-50"
+                                    placeholder="Ex: Nossa Senhora..."
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-amber-900 mb-2">Código</label>
+                                <input
+                                    type="text"
+                                    value={filtroCodigo}
+                                    onChange={(e) => setFiltroCodigo(e.target.value)}
+                                    className="w-full px-4 py-2 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-900 bg-amber-50"
+                                    placeholder="Ex: IMG0001A..."
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tabela Catálogo */}
+                    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <table className="w-full text-sm">
+                            <thead className="bg-amber-900 text-white">
+                                <tr>
+                                    <th className="px-6 py-4 text-left font-semibold">Código</th>
+                                    <th className="px-6 py-4 text-left font-semibold">Produto</th>
+                                    <th className="px-6 py-4 text-left font-semibold">Tamanho</th>
+                                    <th className="px-6 py-4 text-right font-semibold">Custo</th>
+                                    <th className="px-6 py-4 text-right font-semibold">Catálogo</th>
+                                    <th className="px-6 py-4 text-right font-semibold">Shopee</th>
+                                    <th className="px-6 py-4 text-center font-semibold">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {produtosFiltrados.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                                            Nenhum produto encontrado com os filtros selecionados.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    produtosFiltrados.map(p => (
+                                        <tr key={p.codigo} className="hover:bg-amber-50 transition">
+                                            <td className="px-6 py-4 font-mono text-amber-900 font-semibold">{p.codigo}</td>
+                                            <td className="px-6 py-4 text-gray-800 font-medium">{p.nome}</td>
+                                            <td className="px-6 py-4 text-gray-700">{p.tamanho}</td>
+                                            <td className="px-6 py-4 text-right text-gray-700">R$ {p.custo?.toFixed(2)}</td>
+                                            <td className="px-6 py-4 text-right text-gray-700 font-semibold">R$ {p.preco_catalogo?.toFixed(2)}</td>
+                                            <td className="px-6 py-4 text-right text-gray-700 font-semibold">R$ {p.preco_shopee?.toFixed(2)}</td>
+                                            <td className="px-6 py-4 text-center">
+                                                <button
+                                                    onClick={() => adicionarItemPedido(p)}
+                                                    className="bg-amber-100 hover:bg-amber-200 text-amber-900 px-3 py-1 rounded-lg text-xs font-semibold transition"
+                                                >
+                                                    ➕ Add
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+
+            // Componente Novo Pedido
+            const TelaNovoContratoPedido = () => (
+                <div className="space-y-6 animate-slide-in">
+                    <h2 className="text-3xl font-display font-bold text-amber-900">➕ Novo Pedido</h2>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Painel de Informações do Pedido */}
+                        <div className="lg:col-span-1">
+                            <div className="bg-white rounded-xl shadow-lg p-6 card-hover sticky top-8">
+                                <h3 className="font-semibold text-amber-900 mb-6 text-lg">📋 Informações do Pedido</h3>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-amber-900 mb-2">Cliente *</label>
+                                        <input
+                                            type="text"
+                                            value={novoPedido.cliente}
+                                            onChange={(e) => setNovoPedido({...novoPedido, cliente: e.target.value})}
+                                            className="w-full px-4 py-3 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-900 focus:ring-2 focus:ring-amber-100 bg-amber-50"
+                                            placeholder="Nome do cliente"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-amber-900 mb-2">Plataforma</label>
+                                        <select
+                                            value={novoPedido.plataforma}
+                                            onChange={(e) => setNovoPedido({...novoPedido, plataforma: e.target.value})}
+                                            className="w-full px-4 py-3 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-900 focus:ring-2 focus:ring-amber-100 bg-amber-50"
+                                        >
+                                            <option>Shopee</option>
+                                            <option>WhatsApp</option>
+                                            <option>Instagram</option>
+                                            <option>Site</option>
+                                            <option>Direto</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-amber-900 mb-2">Data do Pedido</label>
+                                        <input
+                                            type="date"
+                                            value={novoPedido.data}
+                                            onChange={(e) => setNovoPedido({...novoPedido, data: e.target.value})}
+                                            className="w-full px-4 py-3 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-900 bg-amber-50"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-amber-900 mb-2">Data Entrega Estimada</label>
+                                        <input
+                                            type="date"
+                                            value={novoPedido.entrega_estimada}
+                                            onChange={(e) => setNovoPedido({...novoPedido, entrega_estimada: e.target.value})}
+                                            className="w-full px-4 py-3 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-900 bg-amber-50"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Resumo do Pedido */}
+                                <div className="mt-8 pt-8 border-t-2 border-amber-200">
+                                    <h4 className="font-semibold text-amber-900 mb-4">📊 Resumo</h4>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-700">Itens:</span>
+                                            <span className="font-bold text-amber-900">{totalItemsPedido}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-700">Quantidade:</span>
+                                            <span className="font-bold text-amber-900">{novoPedido.itens.reduce((acc, i) => acc + i.quantidade, 0)}</span>
+                                        </div>
+                                        <div className="pt-3 border-t-2 border-amber-200 flex justify-between">
+                                            <span className="font-semibold text-amber-900">Total:</span>
+                                            <span className="font-bold text-2xl text-amber-900">R$ {totalValorPedido.toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={criarPedido}
+                                    className="w-full mt-8 bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-lg hover:shadow-xl transition transform hover:-translate-y-0.5 font-semibold text-lg"
+                                >
+                                    ✅ Criar Pedido
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Painel de Itens */}
+                        <div className="lg:col-span-2">
+                            {/* Itens Selecionados */}
+                            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                                <h3 className="font-semibold text-amber-900 mb-4 text-lg">🛒 Itens Selecionados ({totalItemsPedido})</h3>
+                                
+                                <div className="space-y-3 max-h-96 overflow-y-auto">
+                                    {totalItemsPedido === 0 ? (
+                                        <div className="text-center py-12">
+                                            <p className="text-gray-500 text-lg mb-2">📦 Nenhum item adicionado</p>
+                                            <p className="text-gray-400 text-sm">Procure produtos no catálogo abaixo</p>
+                                        </div>
+                                    ) : (
+                                        novoPedido.itens.map(item => (
+                                            <div key={item.codigo} className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-4 border-l-4 border-amber-900 card-hover">
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <div className="flex-1">
+                                                        <p className="font-semibold text-amber-900 text-lg">{item.nome}</p>
+                                                        <p className="text-xs text-gray-600 mt-1">{item.codigo} • {item.tamanho}</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => removerItemPedido(item.codigo)}
+                                                        className="text-red-600 hover:text-red-800 hover:bg-red-100 px-3 py-1 rounded font-bold"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-amber-200">
+                                                        <button
+                                                            onClick={() => atualizarQuantidadeItem(item.codigo, item.quantidade - 1)}
+                                                            className="text-amber-900 hover:bg-amber-100 px-2 py-1 rounded font-bold"
+                                                        >
+                                                            −
+                                                        </button>
+                                                        <input
+                                                            type="number"
+                                                            value={item.quantidade}
+                                                            onChange={(e) => atualizarQuantidadeItem(item.codigo, parseInt(e.target.value))}
+                                                            className="w-14 text-center border-0 focus:outline-none font-semibold"
+                                                            min="1"
+                                                        />
+                                                        <button
+                                                            onClick={() => atualizarQuantidadeItem(item.codigo, item.quantidade + 1)}
+                                                            className="text-amber-900 hover:bg-amber-100 px-2 py-1 rounded font-bold"
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="text-right">
+                                                        <p className="text-xs text-gray-600">Un.: R$ {item.preco_unitario.toFixed(2)}</p>
+                                                        <p className="font-bold text-amber-900 text-lg">R$ {(item.quantidade * item.preco_unitario).toFixed(2)}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Catálogo Rápido */}
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <h3 className="font-semibold text-amber-900 mb-4 text-lg">📚 Catálogo Rápido (Top 15)</h3>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-xs">
+                                        <thead className="bg-amber-50">
+                                            <tr>
+                                                <th className="px-3 py-2 text-left text-amber-900 font-semibold">Código</th>
+                                                <th className="px-3 py-2 text-left text-amber-900 font-semibold">Produto</th>
+                                                <th className="px-3 py-2 text-right text-amber-900 font-semibold">R$</th>
+                                                <th className="px-3 py-2 text-center">Ação</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y">
+                                            {produtosFiltrados.slice(0, 15).map(p => (
+                                                <tr key={p.codigo} className="hover:bg-amber-50 transition">
+                                                    <td className="px-3 py-2 font-mono text-amber-900 font-semibold">{p.codigo}</td>
+                                                    <td className="px-3 py-2 text-gray-700 truncate">{p.nome}</td>
+                                                    <td className="px-3 py-2 text-right font-semibold">R$ {(p.preco_shopee || p.preco_catalogo).toFixed(2)}</td>
+                                                    <td className="px-3 py-2 text-center">
+                                                        <button
+                                                            onClick={() => adicionarItemPedido(p)}
+                                                            className="bg-amber-900 hover:bg-amber-800 text-white px-2 py-1 rounded text-xs font-bold"
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // Componente Pedidos
+            const TelaPedidos = () => (
+                <div className="space-y-6 animate-slide-in">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-3xl font-display font-bold text-amber-900">📦 Pedidos ({pedidos.length})</h2>
+                        <button
+                            onClick={() => setTelaAtiva('novo-pedido')}
+                            className="bg-amber-900 text-white px-6 py-3 rounded-lg hover:shadow-lg transition font-semibold"
+                        >
+                            ➕ Novo Pedido
+                        </button>
+                    </div>
+
+                    {pedidos.length === 0 ? (
+                        <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                            <p className="text-gray-500 text-lg mb-4">📭 Nenhum pedido registrado</p>
+                            <button
+                                onClick={() => setTelaAtiva('novo-pedido')}
+                                className="bg-amber-900 text-white px-6 py-3 rounded-lg hover:shadow-lg transition font-semibold"
+                            >
+                                Criar Primeiro Pedido
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                            <table className="w-full">
+                                <thead className="bg-amber-900 text-white">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left font-semibold">Nº Pedido</th>
+                                        <th className="px-6 py-4 text-left font-semibold">Cliente</th>
+                                        <th className="px-6 py-4 text-left font-semibold">Plataforma</th>
+                                        <th className="px-6 py-4 text-left font-semibold">Itens</th>
+                                        <th className="px-6 py-4 text-right font-semibold">Valor</th>
+                                        <th className="px-6 py-4 text-left font-semibold">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {pedidos.map(p => (
+                                        <tr key={p.id} className="hover:bg-amber-50 transition">
+                                            <td className="px-6 py-4 font-mono font-bold text-amber-900">{p.numero}</td>
+                                            <td className="px-6 py-4 font-semibold text-gray-800">{p.cliente}</td>
+                                            <td className="px-6 py-4 text-gray-700">{p.plataforma}</td>
+                                            <td className="px-6 py-4 text-gray-700">{p.itens.length} item(ns)</td>
+                                            <td className="px-6 py-4 text-right font-bold text-amber-900">R$ {p.valor_total.toFixed(2)}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                                    p.status === 'enviado' ? 'bg-green-100 text-green-700' :
+                                                    p.status === 'solicitacao' ? 'bg-blue-100 text-blue-700' :
+                                                    'bg-yellow-100 text-yellow-700'
+                                                }`}>
+                                                    {p.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50">
+                    {/* Header */}
+                    <header className="bg-white shadow-lg border-b-4 border-amber-900 sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg flex items-center justify-center border-2 border-amber-900 shadow-md">
+                                    <span className="text-3xl font-display font-bold text-amber-900">D</span>
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-display font-bold text-amber-900">DOM Arte Sacra</h1>
+                                    <p className="text-xs text-gray-600">Sistema de Gestão v2</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <div className="text-right">
+                                    <p className="font-semibold text-amber-900">{usuarioLogado.nome}</p>
+                                    <p className="text-xs text-gray-600">Conectado</p>
+                                </div>
+                                <button
+                                    onClick={handleLogout}
+                                    className="px-6 py-3 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition font-semibold"
+                                >
+                                    🚪 Sair
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="flex">
+                        {/* Sidebar */}
+                        <aside className="w-72 bg-white border-r-4 border-amber-900 min-h-[calc(100vh-80px)] p-6 space-y-2 overflow-y-auto">
+                            {[
+                                {id: 'dashboard', label: '📊 Dashboard', icon: ''},
+                                {id: 'catalogo', label: '📚 Catálogo', icon: ''},
+                                {id: 'novo-pedido', label: '➕ Novo Pedido', icon: ''},
+                                {id: 'pedidos', label: '📦 Pedidos', icon: ''}
+                            ].map(item => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setTelaAtiva(item.id)}
+                                    className={`w-full text-left px-5 py-3 rounded-lg transition font-semibold text-sm ${
+                                        telaAtiva === item.id
+                                            ? 'bg-amber-100 text-amber-900 border-l-4 border-amber-900 shadow-md'
+                                            : 'text-gray-700 hover:bg-amber-50 hover:text-amber-900'
+                                    }`}
+                                >
+                                    {item.label}
+                                </button>
+                            ))}
+
+                            <div className="mt-12 pt-6 border-t-2 border-amber-200">
+                                <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-lg p-5 border-l-4 border-amber-600">
+                                    <p className="text-xs font-bold text-amber-900 mb-2">💾 Dados</p>
+                                    <p className="text-xs text-amber-800 mb-4">Lembre-se de salvar os dados regularmente</p>
+                                    <button
+                                        onClick={salvarDados}
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold text-sm transition"
+                                    >
+                                        ✅ Salvar Agora
+                                    </button>
+                                </div>
+                            </div>
+                        </aside>
+
+                        {/* Main Content */}
+                        <main className="flex-1 p-8 max-w-7xl">
+                            {telaAtiva === 'dashboard' && <TelaDashboard />}
+                            {telaAtiva === 'catalogo' && <TelaCatalogo />}
+                            {telaAtiva === 'novo-pedido' && <TelaNovoContratoPedido />}
+                            {telaAtiva === 'pedidos' && <TelaPedidos />}
+                        </main>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<DOMSistemaV2Final />, document.getElementById('root'));
+    </script>
+</body>
+</html>
