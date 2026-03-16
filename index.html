@@ -138,7 +138,11 @@ tfoot td{background:var(--sf2);font-weight:700;border-top:2px solid var(--bdl);p
   <div class="tx-card" style="max-width:750px" id="f-canais-card"></div>
   <div class="tx-note">⚠ Fórmula: Preço = Catálogo + (Catálogo × Margem%) + Valor Fixo. Ao alterar, todo o sistema recalcula.</div>
 
-  <div class="sec-t" style="margin-top:24px;margin-bottom:14px">4. Exemplo de Cálculo (A Pietà 17cm, 287g)</div>
+  <div class="sec-t" style="margin-top:24px;margin-bottom:14px">4. Taxa de Desconto da Plataforma</div>
+  <div class="tx-card" style="max-width:600px" id="f-taxas-card"></div>
+  <div class="tx-note">⚠ Taxa descontada pela plataforma sobre o valor de venda. Vlr.Final = (Qtd × Vlr.Venda) - (Vlr.Venda × Taxa) - Desconto. Lucro = Vlr.Final - C.Total.</div>
+
+  <div class="sec-t" style="margin-top:24px;margin-bottom:14px">5. Exemplo de Cálculo (A Pietà 17cm, 287g)</div>
   <div class="tx-card" style="max-width:600px">
     <div class="tx-hdr"><span>Etapa</span><span style="flex:2">Cálculo</span><span>Resultado</span></div>
     <div class="tx-r"><span>Custo</span><span class="obs" id="f-ex-custo"></span><span id="f-ex-custo-v" style="font-family:var(--m);color:var(--gn)"></span></div>
@@ -160,18 +164,18 @@ let CAT=[],PED=[],ARC=[],DESP=[],NC=1,NP=1,ND=1;
 const ANO='2026',MS={'01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'};
 const FINS=['Pronto','Enviado','Entregue'],CORES=['Aorum','Branco','Bronze','Cinza','Coloratum','Ouro'];
 const CANAIS=[
-  {id:'site',nome:'Site',margem:17.5,fixo:0},
-  {id:'shopee',nome:'Shopee',margem:30,fixo:4},
-  {id:'whatsapp',nome:'Whatsapp',margem:0,fixo:0},
-  {id:'mercadolivre',nome:'Mercado Livre',margem:0,fixo:0},
-  {id:'amazon',nome:'Amazon',margem:0,fixo:0},
-  {id:'aliexpress',nome:'AliExpress',margem:0,fixo:0},
-  {id:'magalu',nome:'Magalu',margem:0,fixo:0},
-  {id:'shein',nome:'Shein',margem:0,fixo:0},
-  {id:'americanas',nome:'Americanas',margem:0,fixo:0},
-  {id:'carrefour',nome:'Carrefour',margem:0,fixo:0},
-  {id:'tiktok',nome:'TikTok Shop',margem:0,fixo:0},
-  {id:'instagram',nome:'Instagram',margem:0,fixo:0}
+  {id:'site',nome:'Site',margem:17.5,fixo:0,taxa:5.5},
+  {id:'shopee',nome:'Shopee',margem:30,fixo:4,taxa:22.5},
+  {id:'whatsapp',nome:'Whatsapp',margem:0,fixo:0,taxa:0},
+  {id:'mercadolivre',nome:'Mercado Livre',margem:0,fixo:0,taxa:0},
+  {id:'amazon',nome:'Amazon',margem:0,fixo:0,taxa:0},
+  {id:'aliexpress',nome:'AliExpress',margem:0,fixo:0,taxa:0},
+  {id:'magalu',nome:'Magalu',margem:0,fixo:0,taxa:0},
+  {id:'shein',nome:'Shein',margem:0,fixo:0,taxa:0},
+  {id:'americanas',nome:'Americanas',margem:0,fixo:0,taxa:0},
+  {id:'carrefour',nome:'Carrefour',margem:0,fixo:0,taxa:0},
+  {id:'tiktok',nome:'TikTok Shop',margem:0,fixo:0,taxa:0},
+  {id:'instagram',nome:'Instagram',margem:0,fixo:0,taxa:0}
 ];
 function corOpts(s){return CORES.map(c=>`<option value="${c}"${s===c?' selected':''}>${c}</option>`).join('')}
 function updateCoresList(){
@@ -190,7 +194,9 @@ let _idx=new Map();
 function rebIdx(){_idx.clear();CAT.forEach(c=>{if(c.codigo)_idx.set(c.codigo.toUpperCase(),c)})}
 // Get channel margem% and fixo from formula inputs
 function chMargem(ch){const can=CANAIS.find(c=>c.nome===ch);if(!can)return{m:0,f:0};const em=document.getElementById('fc-m-'+can.id),ef=document.getElementById('fc-f-'+can.id);return{m:em?(+em.value/100||0):(can.margem/100||0),f:ef?(+ef.value||0):(can.fixo||0)}}
-function txC(ch){return chMargem(ch).m} // backward compat for _tx display
+// Taxa de desconto da plataforma (descontada do valor de venda)
+function chTaxa(ch){const can=CANAIS.find(c=>c.nome===ch);if(!can)return 0;const el=document.getElementById('ft-'+can.id);return el?(+el.value/100||0):(can.taxa/100||0)}
+function txC(ch){return chTaxa(ch)}
 function vRes(){return+(document.getElementById('f-resina').value)||0.25}
 function custoR(w){return(w||0)*vRes()}
 function getTipo(c){const u=(c||'').toUpperCase();return u.startsWith('STL')?'STL':u.startsWith('ADO')?'ADO':'IMG'}
@@ -214,9 +220,10 @@ function calcP(p){
   p._vVenda=(p.vVendaM!=null&&p.vVendaM!=='')?p.vVendaM:autoVVenda;
   p._cProdAuto=autoCProd;p._vVendaAuto=autoVVenda;
   p._cTot=p._cProd*(p.qtd||0)+(p.cMod||0);
-  p._tx=txC(p.canal);
-  p._vFinal=(p._vVenda*(p.qtd||0))-(p.desc||0);
-  p._lucro=p._vFinal-(p._vFinal*p._tx)-p._cTot;
+  p._tx=chTaxa(p.canal);
+  // VLR.Final = (QTD × VLR.Venda) - (VLR.Venda × Taxa) - Desconto
+  p._vFinal=((p.qtd||0)*p._vVenda)-(p._vVenda*p._tx)-(p.desc||0);
+  p._lucro=p._vFinal-p._cTot;
 }
 function rAll(){rebIdx();rCat();rPed();rArc();autoSave()}
 
@@ -2885,6 +2892,8 @@ function initApp(){
   if(_init)return;_init=true;
   // Build formula channel inputs: Margem% + Valor Fixo per channel
   document.getElementById('f-canais-card').innerHTML='<div class="tx-hdr"><span>Canal</span><span>Margem (%)</span><span>Fixo (R$)</span><span style="flex:2">Fórmula</span></div>'+CANAIS.map(ch=>`<div class="tx-r"><span>${ch.nome}</span><input type="number" id="fc-m-${ch.id}" value="${ch.margem}" step="0.1" onchange="rAll();updateExample()"><input type="number" id="fc-f-${ch.id}" value="${ch.fixo}" step="0.5" onchange="rAll();updateExample()" style="max-width:80px"><span class="obs">Cat + (Cat×${ch.margem}%) + R$${ch.fixo.toFixed(2)}</span></div>`).join('');
+  // Build taxa desconto inputs per channel
+  document.getElementById('f-taxas-card').innerHTML='<div class="tx-hdr"><span>Canal</span><span>Taxa (%)</span><span style="flex:2">Desconto aplicado pela plataforma</span></div>'+CANAIS.map(ch=>`<div class="tx-r"><span>${ch.nome}</span><input type="number" id="ft-${ch.id}" value="${ch.taxa}" step="0.1" onchange="rAll()"><span class="obs">${ch.taxa?'Desconta '+ch.taxa+'% do valor de venda':'Sem taxa'}</span></div>`).join('');
   // Build arc-canal filter
   document.getElementById('arc-canal').innerHTML='<option value="">Todos</option>'+CANAIS.map(ch=>`<option>${ch.nome}</option>`).join('');
   const m=String(new Date().getMonth()+1).padStart(2,'0');
