@@ -152,7 +152,7 @@ function updateCoresList(){
   document.getElementById('cores-list').innerHTML=[...custom].sort().map(c=>`<option value="${c}">`).join('');
 }
 function stCls(s){return'st-'+s.replace(/\s/g,'')}
-const STORAGE_KEY='dom_gestao_v7';
+const STORAGE_KEY='dom_gestao_v8';
 function autoSave(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({CAT,PED,ARC,DESP,NC,NP,ND}));const e=document.getElementById('save-status');if(e){e.textContent='✓ '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});e.style.color='var(--gn)';clearTimeout(e._t);e._t=setTimeout(()=>e.style.color='var(--txm)',2e3)}}catch(e){}}
 function loadLS(){try{const r=localStorage.getItem(STORAGE_KEY);if(!r)return false;const d=JSON.parse(r);CAT=d.CAT||[];PED=d.PED||[];ARC=d.ARC||[];DESP=d.DESP||[];NC=d.NC||1;NP=d.NP||1;ND=d.ND||1;return true}catch(e){return false}}
 function exportJSON(){const b=new Blob([JSON.stringify({CAT,PED,ARC,DESP,NC,NP,ND},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='DOM_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
@@ -173,13 +173,16 @@ function pct(v){return((v||0)*100).toFixed(1)+'%'}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
 function allP(){return PED.concat(ARC)}
 
-// calcP: each line is ONE product
+// calcP: each line is ONE product. Manual overrides: cProdM, vVendaM
 function calcP(p){
   const cat=fCat(p.cod),t=getTipo(p.cod);
   p._prod=cat?cat.produto:'';p._tipo=t;p._cor=cat?cat.cor:'';p._tam=cat?cat.tamanho:'';
-  p._cProd=t==='STL'?0:(cat?custoR(cat.peso):0);
+  const autoCProd=t==='STL'?0:(cat?custoR(cat.peso):0);
+  const autoVVenda=precoU(cat,p.canal);
+  p._cProd=(p.cProdM!=null&&p.cProdM!=='')?p.cProdM:autoCProd;
+  p._vVenda=(p.vVendaM!=null&&p.vVendaM!=='')?p.vVendaM:autoVVenda;
+  p._cProdAuto=autoCProd;p._vVendaAuto=autoVVenda;
   p._cTot=p._cProd*(p.qtd||0)+(p.cMod||0);
-  p._vVenda=precoU(cat,p.canal);
   p._tx=txC(p.canal);
   p._vFinal=(p._vVenda*(p.qtd||0))-(p.desc||0);
   p._lucro=p._vFinal-(p._vFinal*p._tx)-p._cTot;
@@ -292,7 +295,7 @@ function rCat(){
 }
 
 // ═══ PEDIDOS — 1 linha = 1 produto ═══
-function addPed(){PED.push({pedido:'PED'+String(NP++).padStart(4,'0'),cod:'',auxiliar:'',modelador:'',entrada:'',saida:'',canal:'',qtd:1,cMod:0,desc:0,status:'Pendente',info:''});rPed()}
+function addPed(){PED.push({pedido:'PED'+String(NP++).padStart(4,'0'),cod:'',auxiliar:'',modelador:'',entrada:'',saida:'',canal:'',qtd:1,cProdM:'',cMod:0,vVendaM:'',desc:0,status:'Pendente',info:''});rPed()}
 function delPed(i){if(confirm('Excluir?')){PED.splice(i,1);rPed()}}
 function archiveOne(i){const p=PED[i];if(p.status!=='Entregue'&&p.status!=='Cancelado')return alert('Só Entregue/Cancelado.');ARC.push(p);PED.splice(i,1);rPed();rArc()}
 function archiveAll(){const f=PED.filter(p=>p.status==='Entregue'||p.status==='Cancelado');if(!f.length)return alert('Nenhum.');if(!confirm('Arquivar '+f.length+'?'))return;f.forEach(p=>ARC.push(p));PED=PED.filter(p=>p.status!=='Entregue'&&p.status!=='Cancelado');rPed();rArc()}
@@ -302,14 +305,14 @@ function updatePedRow(i){
   const p=PED[i];rebIdx();calcP(p);
   const tr=document.getElementById('t-ped').rows[i];if(!tr)return;
   const c=tr.cells;
-  // Cells: 0=#, 1=pedido, 2=tipo, 3=cod, 4=produto, 5=cor, 6=tam, 7=aux, 8=model, 9=entrada, 10=saida, 11=canal, 12=qtd, 13=cProd, 14=cMod, 15=cTotal, 16=vVenda, 17=taxa, 18=desc, 19=vFinal, 20=lucro, 21=status, 22=info, 23=acoes
-  if(c.length<21)return; // safety
+  // Cells: 0=#, 1=pedido, 2=tipo, 3=cod, 4=produto, 5=cor, 6=tam, 7=aux, 8=model,
+  // 9=entrada, 10=saida, 11=canal, 12=qtd, 13=cProd(input), 14=cMod(input),
+  // 15=cTotal, 16=vVenda(input), 17=taxa, 18=desc(input), 19=vFinal, 20=lucro
+  if(c.length<21)return;
   c[4].textContent=esc(p._prod)||'—';
   c[5].textContent=esc(p._cor)||'—';
   c[6].textContent=esc(p._tam)||'—';
-  c[13].textContent=fmt(p._cProd);
   c[15].textContent=fmt(p._cTot);
-  c[16].textContent=fmt(p._vVenda);
   c[17].textContent=pct(p._tx);
   c[19].textContent=fmt(p._vFinal);
   c[20].textContent=fmt(p._lucro);
@@ -355,10 +358,10 @@ function rPed(){
       <td class="c"><input type="date" value="${p.saida}" onchange="PED[${i}].saida=this.value;autoSave()"></td>
       <td class="c"><select onchange="PED[${i}].canal=this.value;rPed()"><option value="">-</option>${CANAIS.map(ch=>`<option value="${ch.nome}"${p.canal===ch.nome?' selected':''}>${ch.nome}</option>`).join('')}</select></td>
       <td class="r"><input type="number" min="1" value="${p.qtd}" oninput="PED[${i}].qtd=parseInt(this.value)||0" onblur="updatePedRow(${i})" style="width:60px"></td>
-      <td class="fc">${fmt(p._cProd)}</td>
+      <td class="r"><input type="number" step="0.01" value="${p.cProdM!=null&&p.cProdM!==''?p.cProdM:''}" placeholder="${p._cProdAuto?p._cProdAuto.toFixed(2):'0'}" oninput="PED[${i}].cProdM=this.value===''?'':+this.value||0" onblur="updatePedRow(${i})" style="width:75px;color:${p.cProdM!=null&&p.cProdM!==''?'var(--pp)':'var(--gn)'}"></td>
       <td class="r"><input type="number" step="0.01" value="${p.cMod||''}" placeholder="0" oninput="PED[${i}].cMod=+this.value||0" onblur="updatePedRow(${i})" style="width:70px"></td>
       <td class="fc">${fmt(p._cTot)}</td>
-      <td class="fc">${fmt(p._vVenda)}</td>
+      <td class="r"><input type="number" step="0.01" value="${p.vVendaM!=null&&p.vVendaM!==''?p.vVendaM:''}" placeholder="${p._vVendaAuto?p._vVendaAuto.toFixed(2):'0'}" oninput="PED[${i}].vVendaM=this.value===''?'':+this.value||0" onblur="updatePedRow(${i})" style="width:80px;color:${p.vVendaM!=null&&p.vVendaM!==''?'var(--pp)':'var(--gn)'}"></td>
       <td class="fc" style="color:var(--txd)">${pct(p._tx)}</td>
       <td class="r"><input type="number" step="0.01" value="${p.desc||''}" placeholder="0" oninput="PED[${i}].desc=+this.value||0" onblur="updatePedRow(${i})" style="width:65px"></td>
       <td class="fc">${fmt(p._vFinal)}</td>
@@ -2830,8 +2833,17 @@ function loadDefault(){
 {id:2353,codigo:'ADO0006B05',produto:'Suporte Para Medalha',tamanho:'50 cm',cor:'Branco',peso:0},
 {id:2354,codigo:'ADO0006D05',produto:'Suporte Para Medalha',tamanho:'50 cm',cor:'Cinza',peso:0},
 {id:2355,codigo:'ADO0006F05',produto:'Suporte Para Medalha',tamanho:'50 cm',cor:'Ouro',peso:0}
-];NC=2356;
-  PED=[];NP=1;
+,
+{id:2356,codigo:'IMG0000A00',produto:'Produto Personalizado',tamanho:'-',cor:'Aorum',peso:0},
+{id:2357,codigo:'IMG0000B00',produto:'Produto Personalizado',tamanho:'-',cor:'Branco',peso:0},
+{id:2358,codigo:'IMG0000C00',produto:'Produto Personalizado',tamanho:'-',cor:'Bronze',peso:0},
+{id:2359,codigo:'IMG0000D00',produto:'Produto Personalizado',tamanho:'-',cor:'Cinza',peso:0},
+{id:2360,codigo:'IMG0000E00',produto:'Produto Personalizado',tamanho:'-',cor:'Coloratum',peso:0},
+{id:2361,codigo:'IMG0000F00',produto:'Produto Personalizado',tamanho:'-',cor:'Ouro',peso:0},
+{id:2362,codigo:'STL0000000',produto:'Produto Personalizado',tamanho:'',cor:'',peso:0,custoManual:0,precoManual:0},
+{id:2363,codigo:'STL0000001',produto:'São Pier Giorgio Frassati',tamanho:'',cor:'',peso:0,custoManual:0,precoManual:0}
+];NC=2364;
+  PED=[];NP=13;
   const tpl=[{dia:3,d:'Energia Elétrica',v:317.84,e:'CPFL'},{dia:5,d:'Taxa de Licenciamento',v:0,e:'Prefeitura'},{dia:6,d:'Prestação de Serviço José',v:0,e:'José Carlos (Modelador)'},{dia:6,d:'Prestação de Serviço Igor',v:0,e:'Igor (Modelador)'},{dia:6,d:'Prestação de Serviço Gleice',v:0,e:'Gleice Ellen (Modeladora)'},{dia:6,d:'Prestação de Serviço Kevin',v:0,e:'Kevin (Modelador)'},{dia:6,d:'Prestação de Serviço Mário',v:2100,e:'Mário Rodrigues Montemor'},{dia:10,d:'Internet',v:100,e:'Opção Net'},{dia:10,d:'Honorários Contador',v:450,e:'Firme Associados'},{dia:12,d:'Parcelamento DAS',v:302.83,e:'Simples Nacional'},{dia:15,d:'Prestação de Serviço Gerrah',v:2600,e:'Paulo Cezar Martines'},{dia:17,d:'Capital de Giro Nubank DOM',v:915.26,e:''},{dia:17,d:'Empréstimo Nubank Monize',v:2684.15,e:''},{dia:18,d:'Fatura do Cartão Sicredi',v:0,e:'Sicredi'},{dia:19,d:'INSS',v:0,e:'Receita Federal'},{dia:19,d:'FGTS',v:0,e:'Ministério do Trabalho e Emprego'},{dia:19,d:'DAS DOM',v:0,e:'Receita Federal'},{dia:25,d:'Fatura do Cartão Nubank',v:0,e:'NuBank'},{dia:25,d:'Financiamento do Carro',v:828,e:'Sicredi'},{dia:27,d:'Água',v:117,e:'Sanessol'},{dia:27,d:'Aluguel do mês',v:700,e:'Vilma'},{dia:28,d:'Fatura Cartão Santander',v:340.80,e:'Santander'}];
   DESP=[];let di=1;for(let m=1;m<=12;m++){const mm=String(m).padStart(2,'0');tpl.forEach(t=>{DESP.push({id:di++,data:'2026-'+mm+'-'+String(Math.min(t.dia,28)).padStart(2,'0'),descricao:t.d,valor:t.v,empresa:t.e,info:''})});}ND=di;
 }
