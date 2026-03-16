@@ -77,7 +77,7 @@ tfoot td{background:var(--sf2);font-weight:700;border-top:2px solid var(--bdl);p
   <div class="tab" data-t="auxiliares">Metas</div>
   <div class="tab" data-t="dashboard">Dashboard</div>
   <div class="tab" data-t="despesas">Despesas <span class="b" id="b-desp">0</span></div>
-  <div class="tab" data-t="taxas">Taxas</div>
+  <div class="tab" data-t="taxas">Fórmulas</div>
 </div>
 <div class="cnt">
 
@@ -94,7 +94,7 @@ tfoot td{background:var(--sf2);font-weight:700;border-top:2px solid var(--bdl);p
 <div class="pnl" id="p-arquivo">
   <div class="ax-sum" id="arc-sum"></div>
   <div class="arc-filters"><div><label>Mês</label><select id="arc-mes" onchange="rArc()"><option value="">Todos</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select></div><div><label>Auxiliar</label><select id="arc-aux" onchange="rArc()"><option value="">Todos</option></select></div><div><label>Canal</label><select id="arc-canal" onchange="rArc()"><option value="">Todos</option></select></div><div><label>Busca</label><input id="arc-q" placeholder="Pedido, produto..." oninput="clearTimeout(window._arcT);window._arcT=setTimeout(rArc,200)"></div></div>
-  <div class="tw" style="max-height:50vh"><table><thead><tr><th class="c" style="min-width:34px">#</th><th style="min-width:85px">Pedido</th><th style="min-width:85px">Código</th><th style="min-width:150px">Produto</th><th class="c" style="min-width:75px">Auxiliar</th><th class="c" style="min-width:90px">Saída</th><th class="c" style="min-width:65px">Canal</th><th class="r" style="min-width:40px">Qtd</th><th class="r" style="min-width:85px">Vlr.Final</th><th class="r" style="min-width:75px">Lucro</th><th class="c" style="min-width:100px">Status</th><th style="min-width:100px">Info</th><th class="c" style="min-width:36px"></th></tr></thead><tbody id="t-arc"></tbody></table></div>
+  <div class="tw" style="max-height:50vh"><table><thead><tr><th class="c" style="min-width:34px">#</th><th style="min-width:85px">Pedido</th><th style="min-width:85px">Código</th><th style="min-width:150px">Produto</th><th class="c" style="min-width:75px">Auxiliar</th><th class="c" style="min-width:90px">Saída</th><th class="c" style="min-width:65px">Canal</th><th class="r" style="min-width:40px">Qtd</th><th class="r" style="min-width:85px">Vlr.Final (R$)</th><th class="r" style="min-width:75px">Lucro (R$)</th><th class="c" style="min-width:100px">Status</th><th style="min-width:100px">Info</th><th class="c" style="min-width:36px"></th></tr></thead><tbody id="t-arc"></tbody></table></div>
 </div>
 
 <div class="pnl" id="p-auxiliares">
@@ -108,25 +108,44 @@ tfoot td{background:var(--sf2);font-weight:700;border-top:2px solid var(--bdl);p
 <div class="pnl" id="p-dashboard">
   <div class="kpis" id="d-kpis"></div>
   <div class="sec-t">Painel Financeiro Mensal — 2026</div>
-  <div class="tw" style="max-height:none;margin-bottom:18px"><table style="min-width:950px"><thead><tr><th>Mês</th><th class="r">Itens</th><th class="r">Faturamento</th><th class="r">Custo Prod.</th><th class="r">Lucro Bruto</th><th class="r">Despesas</th><th class="r">Resultado</th><th class="r">Margem</th><th class="r">Bônus</th></tr></thead><tbody id="d-mb"></tbody><tfoot id="d-mf"></tfoot></table></div>
-  <div class="dgrid"><div><div class="sec-t">Por Canal</div><div class="dtbl"><table><thead><tr><th>Canal</th><th class="r">Itens</th><th class="r">Faturamento</th><th class="r">Lucro</th></tr></thead><tbody id="d-canal"></tbody></table></div></div><div><div class="sec-t">Por Status</div><div class="dtbl"><table><thead><tr><th>Status</th><th class="r">Itens</th></tr></thead><tbody id="d-status"></tbody></table></div></div></div>
+  <div class="tw" style="max-height:none;margin-bottom:18px"><table style="min-width:950px"><thead><tr><th>Mês</th><th class="r">Itens</th><th class="r">Faturamento (R$)</th><th class="r">Custo Prod. (R$)</th><th class="r">Lucro Bruto (R$)</th><th class="r">Despesas (R$)</th><th class="r">Resultado (R$)</th><th class="r">Margem</th><th class="r">Bônus (R$)</th></tr></thead><tbody id="d-mb"></tbody><tfoot id="d-mf"></tfoot></table></div>
+  <div class="dgrid"><div><div class="sec-t">Por Canal</div><div class="dtbl"><table><thead><tr><th>Canal</th><th class="r">Itens</th><th class="r">Faturamento (R$)</th><th class="r">Lucro (R$)</th></tr></thead><tbody id="d-canal"></tbody></table></div></div><div><div class="sec-t">Por Status</div><div class="dtbl"><table><thead><tr><th>Status</th><th class="r">Itens</th></tr></thead><tbody id="d-status"></tbody></table></div></div></div>
 </div>
 
 <div class="pnl" id="p-despesas">
   <div class="ax-ctrl"><div class="ax-f"><label>Mês</label><select id="desp-mes" onchange="rDesp()"><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select></div><button class="btn btn-a" onclick="addDesp()">+ Despesa</button><span class="lbl" id="c-desp"></span></div>
   <div class="ax-sum" id="desp-sum"></div>
-  <div class="tw"><table><thead><tr><th class="c" style="min-width:48px">Pos.</th><th class="c" style="min-width:100px">Data</th><th style="min-width:190px">Despesa</th><th class="r" style="min-width:95px">Valor R$</th><th style="min-width:180px">Empresa</th><th style="min-width:130px">Info</th><th class="c" style="min-width:36px"></th></tr></thead><tbody id="t-desp"></tbody><tfoot><tr><td colspan="3" style="padding:8px 10px;font-weight:800;text-align:right">TOTAL</td><td class="v" id="desp-total" style="color:var(--rd)"></td><td colspan="3"></td></tr></tfoot></table></div>
+  <div class="tw"><table><thead><tr><th class="c" style="min-width:48px">Pos.</th><th class="c" style="min-width:100px">Data</th><th style="min-width:190px">Despesa</th><th class="r" style="min-width:95px">Valor (R$)</th><th style="min-width:180px">Empresa</th><th style="min-width:130px">Info</th><th class="c" style="min-width:36px"></th></tr></thead><tbody id="t-desp"></tbody><tfoot><tr><td colspan="3" style="padding:8px 10px;font-weight:800;text-align:right">TOTAL</td><td class="v" id="desp-total" style="color:var(--rd)"></td><td colspan="3"></td></tr></tfoot></table></div>
 </div>
 
 <div class="pnl" id="p-taxas">
-  <div class="sec-t" style="margin-bottom:12px">Taxas por Canal</div>
-  <div class="tx-card" id="tx-canais-card"></div>
-  <div class="sec-t" style="margin-top:20px;margin-bottom:12px">Valor da Resina</div>
-  <div class="tx-card"><div class="tx-hdr"><span>Parâmetro</span><span>R$/kg</span><span style="flex:2">Fórmula</span></div><div class="tx-r"><span>Resina</span><input type="number" id="tx-resina" value="250" step="5" onchange="rAll()"><span class="obs">Custo = Peso(g) × (Valor/1000)</span></div></div>
+  <div class="sec-t" style="margin-bottom:14px">1. Custo de Produção</div>
+  <div class="tx-card" style="max-width:600px">
+    <div class="tx-hdr"><span>Parâmetro</span><span>Valor</span><span style="flex:2">Fórmula</span></div>
+    <div class="tx-r"><span>Valor da Resina (R$/g)</span><input type="number" id="f-resina" value="0.25" step="0.01" onchange="rAll()"><span class="obs">Custo = Peso × Valor_Resina</span></div>
+  </div>
   <div class="tx-note">⚠ STL (virtuais): custo zero no pedido. Registre o investimento na aba Despesas.</div>
-  <div class="sec-t" style="margin-top:20px;margin-bottom:12px">Margem de Catálogo</div>
-  <div class="tx-card"><div class="tx-hdr"><span>Tipo</span><span>Margem</span><span style="flex:2">Fórmula</span></div><div class="tx-r"><span>IMG</span><input type="number" id="tx-marg-img" value="1.625" step="0.025" onchange="rAll()"><span class="obs">Custo+(Custo×Margem)</span></div><div class="tx-r"><span>ADO</span><input type="number" id="tx-marg-ado" value="2" step="0.025" onchange="rAll()"><span class="obs">Custo+(Custo×Margem)</span></div></div>
+
+  <div class="sec-t" style="margin-top:24px;margin-bottom:14px">2. Preço de Catálogo</div>
+  <div class="tx-card" style="max-width:600px">
+    <div class="tx-hdr"><span>Tipo</span><span>Margem</span><span style="flex:2">Fórmula</span></div>
+    <div class="tx-r"><span>IMG (Imagens)</span><input type="number" id="f-marg-img" value="1.625" step="0.001" onchange="rAll()"><span class="obs">Catálogo = Custo + (Custo × <span id="f-marg-img-v">1.625</span>)</span></div>
+    <div class="tx-r"><span>ADO (Adornos)</span><input type="number" id="f-marg-ado" value="2" step="0.001" onchange="rAll()"><span class="obs">Catálogo = Custo + (Custo × <span id="f-marg-ado-v">2</span>)</span></div>
+  </div>
   <div class="tx-note">⚠ STL: preço de catálogo informado manualmente no produto.</div>
+
+  <div class="sec-t" style="margin-top:24px;margin-bottom:14px">3. Preço por Canal de Venda</div>
+  <div class="tx-card" style="max-width:750px" id="f-canais-card"></div>
+  <div class="tx-note">⚠ Fórmula: Preço = Catálogo + (Catálogo × Margem%) + Valor Fixo. Ao alterar, todo o sistema recalcula.</div>
+
+  <div class="sec-t" style="margin-top:24px;margin-bottom:14px">4. Exemplo de Cálculo (A Pietà 17cm, 287g)</div>
+  <div class="tx-card" style="max-width:600px">
+    <div class="tx-hdr"><span>Etapa</span><span style="flex:2">Cálculo</span><span>Resultado</span></div>
+    <div class="tx-r"><span>Custo</span><span class="obs" id="f-ex-custo"></span><span id="f-ex-custo-v" style="font-family:var(--m);color:var(--gn)"></span></div>
+    <div class="tx-r"><span>Catálogo</span><span class="obs" id="f-ex-cat"></span><span id="f-ex-cat-v" style="font-family:var(--m);color:var(--gn)"></span></div>
+    <div class="tx-r"><span>Site</span><span class="obs" id="f-ex-site"></span><span id="f-ex-site-v" style="font-family:var(--m);color:var(--gn)"></span></div>
+    <div class="tx-r"><span>Shopee</span><span class="obs" id="f-ex-shopee"></span><span id="f-ex-shopee-v" style="font-family:var(--m);color:var(--gn)"></span></div>
+  </div>
 </div>
 
 </div></div>
@@ -141,10 +160,18 @@ let CAT=[],PED=[],ARC=[],DESP=[],NC=1,NP=1,ND=1;
 const ANO='2026',MS={'01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'};
 const FINS=['Pronto','Enviado','Entregue'],CORES=['Aorum','Branco','Bronze','Cinza','Coloratum','Ouro'];
 const CANAIS=[
-  {id:'site',nome:'Site',taxa:5},{id:'shopee',nome:'Shopee',taxa:22.5},{id:'whatsapp',nome:'Whatsapp',taxa:0},
-  {id:'mercadolivre',nome:'Mercado Livre',taxa:0},{id:'amazon',nome:'Amazon',taxa:0},{id:'aliexpress',nome:'AliExpress',taxa:0},
-  {id:'magalu',nome:'Magalu',taxa:0},{id:'shein',nome:'Shein',taxa:0},{id:'americanas',nome:'Americanas',taxa:0},
-  {id:'carrefour',nome:'Carrefour',taxa:0},{id:'tiktok',nome:'TikTok Shop',taxa:0},{id:'instagram',nome:'Instagram',taxa:0}
+  {id:'site',nome:'Site',margem:17.5,fixo:0},
+  {id:'shopee',nome:'Shopee',margem:30,fixo:4},
+  {id:'whatsapp',nome:'Whatsapp',margem:0,fixo:0},
+  {id:'mercadolivre',nome:'Mercado Livre',margem:0,fixo:0},
+  {id:'amazon',nome:'Amazon',margem:0,fixo:0},
+  {id:'aliexpress',nome:'AliExpress',margem:0,fixo:0},
+  {id:'magalu',nome:'Magalu',margem:0,fixo:0},
+  {id:'shein',nome:'Shein',margem:0,fixo:0},
+  {id:'americanas',nome:'Americanas',margem:0,fixo:0},
+  {id:'carrefour',nome:'Carrefour',margem:0,fixo:0},
+  {id:'tiktok',nome:'TikTok Shop',margem:0,fixo:0},
+  {id:'instagram',nome:'Instagram',margem:0,fixo:0}
 ];
 function corOpts(s){return CORES.map(c=>`<option value="${c}"${s===c?' selected':''}>${c}</option>`).join('')}
 function updateCoresList(){
@@ -161,14 +188,18 @@ function resetData(){if(!confirm('APAGAR TUDO?')||!confirm('Certeza?'))return;lo
 
 let _idx=new Map();
 function rebIdx(){_idx.clear();CAT.forEach(c=>{if(c.codigo)_idx.set(c.codigo.toUpperCase(),c)})}
-function txC(ch){const can=CANAIS.find(c=>c.nome===ch);if(!can)return 0;const el=document.getElementById('tx-'+can.id);return el?(+el.value/100||0):(can.taxa/100||0)}
-function vRes(){return+(document.getElementById('tx-resina').value)||250}
-function custoR(w){return(w||0)*(vRes()/1000)}
+// Get channel margem% and fixo from formula inputs
+function chMargem(ch){const can=CANAIS.find(c=>c.nome===ch);if(!can)return{m:0,f:0};const em=document.getElementById('fc-m-'+can.id),ef=document.getElementById('fc-f-'+can.id);return{m:em?(+em.value/100||0):(can.margem/100||0),f:ef?(+ef.value||0):(can.fixo||0)}}
+function txC(ch){return chMargem(ch).m} // backward compat for _tx display
+function vRes(){return+(document.getElementById('f-resina').value)||0.25}
+function custoR(w){return(w||0)*vRes()}
 function getTipo(c){const u=(c||'').toUpperCase();return u.startsWith('STL')?'STL':u.startsWith('ADO')?'ADO':'IMG'}
-function margC(c){const t=getTipo(c);return+(document.getElementById(t==='ADO'?'tx-marg-ado':'tx-marg-img').value)||(t==='ADO'?2:1.625)}
+function margC(c){const t=getTipo(c);return+(document.getElementById(t==='ADO'?'f-marg-ado':'f-marg-img').value)||(t==='ADO'?2:1.625)}
 function fCat(c){return _idx.get((c||'').toUpperCase())||null}
-function precoU(cat,ch){if(!cat)return 0;if(getTipo(cat.codigo)==='STL')return(cat.precoManual||0)*(1+txC(ch));const cu=custoR(cat.peso);return(cu+cu*margC(cat.codigo))*(1+txC(ch))}
-function fmt(v){return'R$ '+(v||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
+// Preço canal = Catálogo + (Catálogo × Margem%) + Fixo
+function precoCanal(catalogo,ch){const{m,f}=chMargem(ch);return catalogo+(catalogo*m)+f}
+function precoU(cat,ch){if(!cat)return 0;if(getTipo(cat.codigo)==='STL')return precoCanal(cat.precoManual||0,ch);const cu=custoR(cat.peso);const catalogo=cu+cu*margC(cat.codigo);return precoCanal(catalogo,ch)}
+function fmt(v){return Math.round(v||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
 function pct(v){return((v||0)*100).toFixed(1)+'%'}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
 function allP(){return PED.concat(ARC)}
@@ -261,7 +292,7 @@ function rCat(){
   rebIdx();
   const fv=saveFilters('fc');
   // Dynamic header with filter row
-  const thMain='<tr><th class="c" style="min-width:48px">Pos.</th><th style="min-width:46px">Tipo</th><th style="min-width:110px">Código</th><th style="min-width:190px">Produto</th><th class="c" style="min-width:80px">Cor</th><th class="c" style="min-width:75px">Tamanho</th><th class="c" style="min-width:75px">Peso(g)</th><th class="r" style="min-width:85px">Custo</th><th class="r" style="min-width:85px">Catálogo</th>'+CANAIS.map(ch=>`<th class="r" style="min-width:85px">${ch.nome}</th>`).join('')+'<th class="c" style="min-width:36px"></th></tr>';
+  const thMain='<tr><th class="c" style="min-width:48px">Pos.</th><th style="min-width:50px">Tipo</th><th style="min-width:120px">Código</th><th style="min-width:220px">Produto</th><th class="c" style="min-width:100px">Cor</th><th class="c" style="min-width:90px">Tamanho</th><th class="c" style="min-width:80px">Peso(g)</th><th class="r" style="min-width:90px">Custo (R$)</th><th class="r" style="min-width:90px">Catálogo (R$)</th>'+CANAIS.map(ch=>`<th class="r" style="min-width:95px">${ch.nome} (R$)</th>`).join('')+'<th class="c" style="min-width:36px"></th></tr>';
   const thFilter='<tr class="flt-row"><th></th><th><select id="fc-tipo" oninput="dFilterCat()"><option value="">Todos</option><option>IMG</option><option>ADO</option><option>STL</option></select></th><th><input id="fc-codigo" placeholder="Buscar..." oninput="dFilterCat()"></th><th><input id="fc-produto" placeholder="Buscar..." oninput="dFilterCat()"></th><th><input id="fc-cor" placeholder="Buscar..." oninput="dFilterCat()"></th><th><input id="fc-tamanho" placeholder="Buscar..." oninput="dFilterCat()"></th><th></th><th></th><th></th>'+CANAIS.map(()=>'<th></th>').join('')+'<th><button class="btn-del" onclick="clearFilters(\'fc\')" title="Limpar filtros" style="font-size:9px">✕</button></th></tr>';
   document.getElementById('cat-thead').innerHTML=thMain+thFilter;
 
@@ -271,7 +302,7 @@ function rCat(){
     const cu=isS?(c.custoManual||0):custoR(c.peso);
     const ca=isS?(c.precoManual||0):(cu+cu*margC(c.codigo));
     c.custo=cu;c.catalogo=ca;
-    const chCols=CANAIS.map(ch=>`<td class="fc">${ca?fmt(ca*(1+txC(ch.nome))):'—'}</td>`).join('');
+    const chCols=CANAIS.map(ch=>`<td class="fc">${ca?fmt(precoCanal(ca,ch.nome)):'—'}</td>`).join('');
     const tr=document.createElement('tr');
     tr.dataset.tipo=t.toLowerCase();
     tr.dataset.codigo=(c.codigo||'').toLowerCase();
@@ -324,7 +355,7 @@ function rPed(){
   rebIdx();
   const fv=saveFilters('fp');
   // Dynamic header with filter row
-  const thMain='<tr><th class="c" style="min-width:34px">#</th><th style="min-width:95px">Pedido</th><th class="c" style="min-width:46px">Tipo</th><th style="min-width:95px">Cód. Produto</th><th style="min-width:170px">Produto</th><th class="c" style="min-width:75px">Cor</th><th class="c" style="min-width:70px">Tam.</th><th class="c" style="min-width:85px">Auxiliar</th><th class="c" style="min-width:85px">Modelador</th><th class="c" style="min-width:100px">Entrada</th><th class="c" style="min-width:100px">Saída</th><th class="c" style="min-width:75px">Canal</th><th class="r" style="min-width:65px">Qtd</th><th class="r" style="min-width:85px">C.Prod</th><th class="r" style="min-width:85px">C.Model</th><th class="r" style="min-width:85px">C.Total</th><th class="r" style="min-width:90px">Vlr.Venda</th><th class="c" style="min-width:55px">Taxa</th><th class="r" style="min-width:75px">Desc.</th><th class="r" style="min-width:90px">Vlr.Final</th><th class="r" style="min-width:80px">Lucro</th><th class="c" style="min-width:110px">Status</th><th style="min-width:120px">Info</th><th class="c" style="min-width:60px">Ações</th></tr>';
+  const thMain='<tr><th class="c" style="min-width:36px">#</th><th style="min-width:100px">Pedido</th><th class="c" style="min-width:50px">Tipo</th><th style="min-width:120px">Cód. Produto</th><th style="min-width:200px">Produto</th><th class="c" style="min-width:100px">Cor</th><th class="c" style="min-width:80px">Tam.</th><th class="c" style="min-width:100px">Auxiliar</th><th class="c" style="min-width:100px">Modelador</th><th class="c" style="min-width:115px">Entrada</th><th class="c" style="min-width:115px">Saída</th><th class="c" style="min-width:100px">Canal</th><th class="r" style="min-width:65px">Qtd</th><th class="r" style="min-width:90px">C.Prod (R$)</th><th class="r" style="min-width:90px">C.Model (R$)</th><th class="r" style="min-width:90px">C.Total (R$)</th><th class="r" style="min-width:100px">Vlr.Venda (R$)</th><th class="c" style="min-width:60px">Taxa</th><th class="r" style="min-width:80px">Desc. (R$)</th><th class="r" style="min-width:100px">Vlr.Final (R$)</th><th class="r" style="min-width:90px">Lucro (R$)</th><th class="c" style="min-width:120px">Status</th><th style="min-width:140px">Info</th><th class="c" style="min-width:65px">Ações</th></tr>';
   const thFilter='<tr class="flt-row"><th></th><th><input id="fp-pedido" placeholder="Pedido" oninput="dFilterPed()"></th><th><select id="fp-tipo" oninput="dFilterPed()"><option value="">Todos</option><option>IMG</option><option>ADO</option><option>STL</option></select></th><th><input id="fp-cod" placeholder="Código" oninput="dFilterPed()"></th><th><input id="fp-produto" placeholder="Produto" oninput="dFilterPed()"></th><th><input id="fp-cor" placeholder="Cor" oninput="dFilterPed()"></th><th></th><th><input id="fp-auxiliar" placeholder="Auxiliar" oninput="dFilterPed()"></th><th><input id="fp-modelador" placeholder="Modelador" oninput="dFilterPed()"></th><th></th><th></th><th><select id="fp-canal" oninput="dFilterPed()"><option value="">Todos</option>'+CANAIS.map(ch=>`<option>${ch.nome}</option>`).join('')+'</select></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th><select id="fp-status" oninput="dFilterPed()"><option value="">Todos</option><option>Pendente</option><option>Em Produção</option><option>Pronto</option><option>Enviado</option><option>Entregue</option><option>Cancelado</option></select></th><th></th><th><button class="btn-del" onclick="clearFilters(\'fp\')" title="Limpar" style="font-size:9px">✕</button></th></tr>';
   document.getElementById('ped-thead').innerHTML=thMain+thFilter;
 
@@ -357,13 +388,13 @@ function rPed(){
       <td class="c"><input type="date" value="${p.entrada}" onchange="PED[${i}].entrada=this.value;autoSave()"></td>
       <td class="c"><input type="date" value="${p.saida}" onchange="PED[${i}].saida=this.value;autoSave()"></td>
       <td class="c"><select onchange="PED[${i}].canal=this.value;rPed()"><option value="">-</option>${CANAIS.map(ch=>`<option value="${ch.nome}"${p.canal===ch.nome?' selected':''}>${ch.nome}</option>`).join('')}</select></td>
-      <td class="r"><input type="number" min="1" value="${p.qtd}" oninput="PED[${i}].qtd=parseInt(this.value)||0" onblur="updatePedRow(${i})" style="width:60px"></td>
-      <td class="r"><input type="number" step="0.01" value="${p.cProdM!=null&&p.cProdM!==''?p.cProdM:''}" placeholder="${p._cProdAuto?p._cProdAuto.toFixed(2):'0'}" oninput="PED[${i}].cProdM=this.value===''?'':+this.value||0" onblur="updatePedRow(${i})" style="width:75px;color:${p.cProdM!=null&&p.cProdM!==''?'var(--pp)':'var(--gn)'}"></td>
-      <td class="r"><input type="number" step="0.01" value="${p.cMod||''}" placeholder="0" oninput="PED[${i}].cMod=+this.value||0" onblur="updatePedRow(${i})" style="width:70px"></td>
+      <td class="r"><input type="number" min="1" value="${p.qtd}" oninput="PED[${i}].qtd=parseInt(this.value)||0" onblur="updatePedRow(${i})" style="width:55px"></td>
+      <td class="r"><input type="number" step="0.01" value="${p.cProdM!=null&&p.cProdM!==''?p.cProdM:''}" placeholder="${Math.round(p._cProdAuto)||'0'}" oninput="PED[${i}].cProdM=this.value===''?'':+this.value||0" onblur="updatePedRow(${i})" style="width:80px;color:${p.cProdM!=null&&p.cProdM!==''?'var(--pp)':'var(--gn)'}"></td>
+      <td class="r"><input type="number" step="0.01" value="${p.cMod||''}" placeholder="0" oninput="PED[${i}].cMod=+this.value||0" onblur="updatePedRow(${i})" style="width:80px"></td>
       <td class="fc">${fmt(p._cTot)}</td>
-      <td class="r"><input type="number" step="0.01" value="${p.vVendaM!=null&&p.vVendaM!==''?p.vVendaM:''}" placeholder="${p._vVendaAuto?p._vVendaAuto.toFixed(2):'0'}" oninput="PED[${i}].vVendaM=this.value===''?'':+this.value||0" onblur="updatePedRow(${i})" style="width:80px;color:${p.vVendaM!=null&&p.vVendaM!==''?'var(--pp)':'var(--gn)'}"></td>
+      <td class="r"><input type="number" step="0.01" value="${p.vVendaM!=null&&p.vVendaM!==''?p.vVendaM:''}" placeholder="${Math.round(p._vVendaAuto)||'0'}" oninput="PED[${i}].vVendaM=this.value===''?'':+this.value||0" onblur="updatePedRow(${i})" style="width:90px;color:${p.vVendaM!=null&&p.vVendaM!==''?'var(--pp)':'var(--gn)'}"></td>
       <td class="fc" style="color:var(--txd)">${pct(p._tx)}</td>
-      <td class="r"><input type="number" step="0.01" value="${p.desc||''}" placeholder="0" oninput="PED[${i}].desc=+this.value||0" onblur="updatePedRow(${i})" style="width:65px"></td>
+      <td class="r"><input type="number" step="0.01" value="${p.desc||''}" placeholder="0" oninput="PED[${i}].desc=+this.value||0" onblur="updatePedRow(${i})" style="width:75px"></td>
       <td class="fc">${fmt(p._vFinal)}</td>
       <td class="fc${p._lucro<0?' neg':''}">${fmt(p._lucro)}</td>
       <td class="st-cell"><select class="st-sel ${stCls(p.status)}" onchange="PED[${i}].status=this.value;rPed()"><option value="Pendente"${p.status==='Pendente'?' selected':''}>Pendente</option><option value="Em Produção"${p.status==='Em Produção'?' selected':''}>Em Produção</option><option value="Pronto"${p.status==='Pronto'?' selected':''}>Pronto</option><option value="Enviado"${p.status==='Enviado'?' selected':''}>Enviado</option><option value="Entregue"${p.status==='Entregue'?' selected':''}>Entregue</option><option value="Cancelado"${p.status==='Cancelado'?' selected':''}>Cancelado</option></select></td>
@@ -2852,13 +2883,29 @@ if(!loadLS())loadDefault();
 let _init=false;
 function initApp(){
   if(_init)return;_init=true;
-  // Build taxas channel inputs
-  document.getElementById('tx-canais-card').innerHTML='<div class="tx-hdr"><span>Canal</span><span>Taxa(%)</span><span style="flex:2">Fórmula</span></div>'+CANAIS.map(ch=>`<div class="tx-r"><span>${ch.nome}</span><input type="number" id="tx-${ch.id}" value="${ch.taxa}" step="0.1" onchange="rAll()"><span class="obs">Catálogo × ${(1+ch.taxa/100).toFixed(3)}</span></div>`).join('');
+  // Build formula channel inputs: Margem% + Valor Fixo per channel
+  document.getElementById('f-canais-card').innerHTML='<div class="tx-hdr"><span>Canal</span><span>Margem (%)</span><span>Fixo (R$)</span><span style="flex:2">Fórmula</span></div>'+CANAIS.map(ch=>`<div class="tx-r"><span>${ch.nome}</span><input type="number" id="fc-m-${ch.id}" value="${ch.margem}" step="0.1" onchange="rAll();updateExample()"><input type="number" id="fc-f-${ch.id}" value="${ch.fixo}" step="0.5" onchange="rAll();updateExample()" style="max-width:80px"><span class="obs">Cat + (Cat×${ch.margem}%) + R$${ch.fixo.toFixed(2)}</span></div>`).join('');
   // Build arc-canal filter
   document.getElementById('arc-canal').innerHTML='<option value="">Todos</option>'+CANAIS.map(ch=>`<option>${ch.nome}</option>`).join('');
   const m=String(new Date().getMonth()+1).padStart(2,'0');
   document.getElementById('ax-mes').value=m;document.getElementById('desp-mes').value=m;
+  updateExample();
   rCat();rPed();rDesp();
+}
+
+function updateExample(){
+  const peso=287,res=vRes(),cu=peso*res,mImg=+(document.getElementById('f-marg-img').value)||1.625;
+  const cat=cu+(cu*mImg);
+  const{m:mS,f:fS}=chMargem('Site'),{m:mSh,f:fSh}=chMargem('Shopee');
+  const site=cat+(cat*mS)+fS,shopee=cat+(cat*mSh)+fSh;
+  document.getElementById('f-ex-custo').textContent=`${peso} × ${res} = `;
+  document.getElementById('f-ex-custo-v').textContent='R$ '+fmt(cu);
+  document.getElementById('f-ex-cat').textContent=`${Math.round(cu)} + (${Math.round(cu)} × ${mImg}) = `;
+  document.getElementById('f-ex-cat-v').textContent='R$ '+fmt(cat);
+  document.getElementById('f-ex-site').textContent=`${Math.round(cat)} + (${Math.round(cat)} × ${(mS*100).toFixed(1)}%) + ${Math.round(fS)} = `;
+  document.getElementById('f-ex-site-v').textContent='R$ '+fmt(site);
+  document.getElementById('f-ex-shopee').textContent=`${Math.round(cat)} + (${Math.round(cat)} × ${(mSh*100).toFixed(1)}%) + ${Math.round(fSh)} = `;
+  document.getElementById('f-ex-shopee-v').textContent='R$ '+fmt(shopee);
 }
 if(sessionStorage.getItem(SESSION_KEY)==='1')initApp();
 </script>
