@@ -183,7 +183,7 @@ function updateCoresList(){
   document.getElementById('cores-list').innerHTML=[...custom].sort().map(c=>`<option value="${c}">`).join('');
 }
 function stCls(s){return'st-'+s.replace(/\s/g,'')}
-const STORAGE_KEY='dom_gestao_v8';
+const STORAGE_KEY='dom_gestao_v9';
 function autoSave(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({CAT,PED,ARC,DESP,NC,NP,ND}));const e=document.getElementById('save-status');if(e){e.textContent='✓ '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});e.style.color='var(--gn)';clearTimeout(e._t);e._t=setTimeout(()=>e.style.color='var(--txm)',2e3)}}catch(e){}}
 function loadLS(){try{const r=localStorage.getItem(STORAGE_KEY);if(!r)return false;const d=JSON.parse(r);CAT=d.CAT||[];PED=d.PED||[];ARC=d.ARC||[];DESP=d.DESP||[];NC=d.NC||1;NP=d.NP||1;ND=d.ND||1;return true}catch(e){return false}}
 function exportJSON(){const b=new Blob([JSON.stringify({CAT,PED,ARC,DESP,NC,NP,ND},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='DOM_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
