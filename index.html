@@ -74,7 +74,8 @@ tfoot td{background:var(--sf2);font-weight:700;border-top:2px solid var(--bdl);p
   <div class="tab on" data-t="catalogo">Catálogo <span class="b" id="b-cat">0</span></div>
   <div class="tab" data-t="pedidos">Pedidos <span class="b" id="b-ped">0</span></div>
   <div class="tab" data-t="arquivo">Arquivo <span class="b" id="b-arc">0</span></div>
-  <div class="tab" data-t="auxiliares">Metas</div>
+  <div class="tab" data-t="auxiliares">Produção</div>
+  <div class="tab" data-t="vendas">Vendas</div>
   <div class="tab" data-t="dashboard">Dashboard</div>
   <div class="tab" data-t="despesas">Despesas <span class="b" id="b-desp">0</span></div>
   <div class="tab" data-t="taxas">Fórmulas</div>
@@ -108,6 +109,19 @@ tfoot td{background:var(--sf2);font-weight:700;border-top:2px solid var(--bdl);p
   <div class="ax-sum" id="ax-sum"></div><div class="ax-cards" id="ax-cards"></div>
   <div class="sec-t">Ranking — <span id="ax-rk-t"></span></div>
   <div class="dtbl" style="max-width:700px;margin-bottom:20px"><table style="min-width:unset;width:100%"><thead><tr><th class="c" style="width:34px">#</th><th>Nome</th><th>Função</th><th class="r">Meta (R$)</th><th class="r">Produção (R$)</th><th class="r">Bônus (R$)</th><th class="c">Status</th></tr></thead><tbody id="ax-rk-b"></tbody></table></div>
+</div>
+
+<div class="pnl" id="p-vendas">
+  <div class="sec-t" style="margin-bottom:12px">Cadastro de Vendedores</div>
+  <div class="bar"><button class="btn btn-a" onclick="addVend()">+ Vendedor</button><span class="lbl" id="c-vend"></span></div>
+  <div class="tw" style="max-height:30vh;margin-bottom:20px"><table style="min-width:unset;width:100%"><thead><tr><th class="c" style="width:34px">#</th><th style="min-width:150px">Nome</th><th class="r" style="min-width:120px">Meta Mensal (R$)</th><th class="c" style="min-width:36px"></th></tr></thead><tbody id="t-vend"></tbody></table></div>
+
+  <div class="sec-t" style="margin-bottom:12px">Acompanhamento de Vendas</div>
+  <div class="ax-ctrl"><div class="ax-f"><label>Mês</label><select id="vd-mes" onchange="rVend()"><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select></div></div>
+  <div class="ax-rule"><strong>Regras:</strong> Pedidos finalizados (Pronto/Enviado/Entregue) — ativos + arquivados. Meta baseada no Vlr.Final. Bônus = 10% do excedente.</div>
+  <div class="ax-sum" id="vd-sum"></div><div class="ax-cards" id="vd-cards"></div>
+  <div class="sec-t">Ranking — <span id="vd-rk-t"></span></div>
+  <div class="dtbl" style="max-width:700px;margin-bottom:20px"><table style="min-width:unset;width:100%"><thead><tr><th class="c" style="width:34px">#</th><th>Vendedor</th><th class="r">Meta (R$)</th><th class="r">Vendas (R$)</th><th class="r">Bônus (R$)</th><th class="c">Status</th></tr></thead><tbody id="vd-rk-b"></tbody></table></div>
 </div>
 
 <div class="pnl" id="p-dashboard">
@@ -166,7 +180,7 @@ const USERS={'admin':'dom2026'},SESSION_KEY='dom_session';
 function doLogin(){const u=document.getElementById('login-user').value.trim().toLowerCase(),p=document.getElementById('login-pass').value;if(USERS[u]&&USERS[u]===p){sessionStorage.setItem(SESSION_KEY,'1');document.getElementById('login-screen').style.display='none';document.getElementById('app-main').style.display='block';initApp()}else{document.getElementById('login-error').style.display='block';document.getElementById('login-pass').value=''}}
 if(sessionStorage.getItem(SESSION_KEY)==='1'){document.getElementById('login-screen').style.display='none';document.getElementById('app-main').style.display='block'}
 
-let CAT=[],PED=[],ARC=[],DESP=[],FUNC=[],NC=1,NP=1,ND=1;
+let CAT=[],PED=[],ARC=[],DESP=[],FUNC=[],VEND=[],NC=1,NP=1,ND=1;
 const ANO='2026',MS={'01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'};
 const FINS=['Pronto','Enviado','Entregue'],CORES=['Aorum','Branco','Bronze','Cinza','Coloratum','Ouro'];
 const CANAIS=[
@@ -191,12 +205,12 @@ function updateCoresList(){
 function stCls(s){return'st-'+s.replace(/\s/g,'')}
 function tipoCls(t){return['IMG','ADO','STL','MAT'].includes(t)?'tipo-'+t:'tipo-default'}
 function allTipos(){const s=new Set();CAT.forEach(c=>{const t=getTipo(c.codigo);if(t)s.add(t)});PED.forEach(p=>{const t=getTipo(p.cod);if(t)s.add(t)});return[...s].sort()}
-const STORAGE_KEY='dom_gestao_v11';
-function autoSave(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({CAT,PED,ARC,DESP,FUNC,NC,NP,ND}));const e=document.getElementById('save-status');if(e){e.textContent='✓ '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});e.style.color='var(--gn)';clearTimeout(e._t);e._t=setTimeout(()=>e.style.color='var(--txm)',2e3)}}catch(e){}}
-function loadLS(){try{const r=localStorage.getItem(STORAGE_KEY);if(!r)return false;const d=JSON.parse(r);CAT=d.CAT||[];PED=d.PED||[];ARC=d.ARC||[];DESP=d.DESP||[];FUNC=d.FUNC||[];NC=d.NC||1;NP=d.NP||1;ND=d.ND||1;return true}catch(e){return false}}
-function exportJSON(){const b=new Blob([JSON.stringify({CAT,PED,ARC,DESP,FUNC,NC,NP,ND},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='DOM_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
-function importJSON(e){const f=e.target.files[0];if(!f||!confirm('Substituir todos os dados?'))return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);CAT=d.CAT||[];PED=d.PED||[];ARC=d.ARC||[];DESP=d.DESP||[];FUNC=d.FUNC||[];NC=d.NC||1;NP=d.NP||1;ND=d.ND||1;rAll();rDesp();autoSave();alert('Importado!')}catch(er){alert('Erro: '+er.message)}};r.readAsText(f);e.target.value=''}
-function resetData(){if(!confirm('APAGAR TUDO?')||!confirm('Certeza?'))return;localStorage.removeItem(STORAGE_KEY);CAT=[];PED=[];ARC=[];DESP=[];FUNC=[];NC=NP=ND=1;rAll();rDesp()}
+const STORAGE_KEY='dom_gestao_v12';
+function autoSave(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({CAT,PED,ARC,DESP,FUNC,VEND,NC,NP,ND}));const e=document.getElementById('save-status');if(e){e.textContent='✓ '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});e.style.color='var(--gn)';clearTimeout(e._t);e._t=setTimeout(()=>e.style.color='var(--txm)',2e3)}}catch(e){}}
+function loadLS(){try{const r=localStorage.getItem(STORAGE_KEY);if(!r)return false;const d=JSON.parse(r);CAT=d.CAT||[];PED=d.PED||[];ARC=d.ARC||[];DESP=d.DESP||[];FUNC=d.FUNC||[];VEND=d.VEND||[];NC=d.NC||1;NP=d.NP||1;ND=d.ND||1;return true}catch(e){return false}}
+function exportJSON(){const b=new Blob([JSON.stringify({CAT,PED,ARC,DESP,FUNC,VEND,NC,NP,ND},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='DOM_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
+function importJSON(e){const f=e.target.files[0];if(!f||!confirm('Substituir todos os dados?'))return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);CAT=d.CAT||[];PED=d.PED||[];ARC=d.ARC||[];DESP=d.DESP||[];FUNC=d.FUNC||[];VEND=d.VEND||[];NC=d.NC||1;NP=d.NP||1;ND=d.ND||1;rAll();rDesp();autoSave();alert('Importado!')}catch(er){alert('Erro: '+er.message)}};r.readAsText(f);e.target.value=''}
+function resetData(){if(!confirm('APAGAR TUDO?')||!confirm('Certeza?'))return;localStorage.removeItem(STORAGE_KEY);CAT=[];PED=[];ARC=[];DESP=[];FUNC=[];VEND=[];NC=NP=ND=1;rAll();rDesp()}
 
 let _idx=new Map();
 function rebIdx(){_idx.clear();CAT.forEach(c=>{if(c.codigo)_idx.set(c.codigo.toUpperCase(),c)})}
@@ -235,7 +249,7 @@ function calcP(p){
 }
 function rAll(){rebIdx();rCat();rPed();rArc();autoSave()}
 
-document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.pnl').forEach(x=>x.classList.remove('on'));this.classList.add('on');document.getElementById('p-'+this.dataset.t).classList.add('on');if(this.dataset.t==='dashboard')rDash();if(this.dataset.t==='auxiliares'){rFunc();rAux()};if(this.dataset.t==='arquivo')rArc();if(this.dataset.t==='despesas')rDesp()}));
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.pnl').forEach(x=>x.classList.remove('on'));this.classList.add('on');document.getElementById('p-'+this.dataset.t).classList.add('on');if(this.dataset.t==='vendas'){rVendList();rVend()};if(this.dataset.t==='dashboard')rDash();if(this.dataset.t==='auxiliares'){rFunc();rAux()};if(this.dataset.t==='arquivo')rArc();if(this.dataset.t==='despesas')rDesp()}));
 
 // ═══ FILTERS ═══
 let _catFilterTimer=0,_pedFilterTimer=0;
@@ -270,6 +284,7 @@ function filterPed(){
     cor:(document.getElementById('fp-cor').value||'').toLowerCase(),
     auxiliar:(document.getElementById('fp-auxiliar').value||'').toLowerCase(),
     modelador:(document.getElementById('fp-modelador').value||'').toLowerCase(),
+    vendedor:(document.getElementById('fp-vendedor').value||'').toLowerCase(),
     canal:(document.getElementById('fp-canal').value||'').toLowerCase(),
     status:(document.getElementById('fp-status').value||'').toLowerCase(),
   };
@@ -277,7 +292,7 @@ function filterPed(){
   let shown=0;
   for(let i=0;i<rows.length;i++){
     const r=rows[i],d=r.dataset;
-    const ok=(!f.pedido||d.pedido.includes(f.pedido))&&(!f.tipo||d.tipo.includes(f.tipo))&&(!f.cod||d.cod.includes(f.cod))&&(!f.produto||d.produto.includes(f.produto))&&(!f.cor||d.cor.includes(f.cor))&&(!f.auxiliar||d.auxiliar.includes(f.auxiliar))&&(!f.modelador||d.modelador.includes(f.modelador))&&(!f.canal||d.canal.includes(f.canal))&&(!f.status||d.status.includes(f.status));
+    const ok=(!f.pedido||d.pedido.includes(f.pedido))&&(!f.tipo||d.tipo.includes(f.tipo))&&(!f.cod||d.cod.includes(f.cod))&&(!f.produto||d.produto.includes(f.produto))&&(!f.cor||d.cor.includes(f.cor))&&(!f.auxiliar||d.auxiliar.includes(f.auxiliar))&&(!f.modelador||d.modelador.includes(f.modelador))&&(!f.vendedor||d.vendedor.includes(f.vendedor))&&(!f.canal||d.canal.includes(f.canal))&&(!f.status||d.status.includes(f.status));
     r.style.display=ok?'':'none';if(ok)shown++;
   }
   document.getElementById('c-ped').textContent=shown+'/'+PED.length+' itens';
@@ -341,7 +356,7 @@ function rCat(){
 }
 
 // ═══ PEDIDOS — 1 linha = 1 produto ═══
-function addPed(){PED.push({pedido:'PED'+String(NP++).padStart(4,'0'),cod:'',auxiliar:'',modelador:'',entrada:'',saida:'',canal:'',qtd:1,cProdM:'',cMod:0,vVendaM:'',desc:0,status:'Pendente',info:''});rPed()}
+function addPed(){PED.push({pedido:'PED'+String(NP++).padStart(4,'0'),cod:'',auxiliar:'',modelador:'',vendedor:'',entrada:'',saida:'',canal:'',qtd:1,cProdM:'',cMod:0,vVendaM:'',desc:0,status:'Pendente',info:''});rPed()}
 function delPed(i){if(confirm('Excluir?')){PED.splice(i,1);rPed()}}
 function archiveOne(i){const p=PED[i];if(p.status!=='Entregue'&&p.status!=='Cancelado')return alert('Só Entregue/Cancelado.');ARC.push(p);PED.splice(i,1);rPed();rArc()}
 function archiveAll(){const f=PED.filter(p=>p.status==='Entregue'||p.status==='Cancelado');if(!f.length)return alert('Nenhum.');if(!confirm('Arquivar '+f.length+'?'))return;f.forEach(p=>ARC.push(p));PED=PED.filter(p=>p.status!=='Entregue'&&p.status!=='Cancelado');rPed();rArc()}
@@ -351,18 +366,17 @@ function updatePedRow(i){
   const p=PED[i];rebIdx();calcP(p);
   const tr=document.getElementById('t-ped').rows[i];if(!tr)return;
   const c=tr.cells;
-  // Cells: 0=#, 1=pedido, 2=tipo, 3=cod, 4=produto, 5=cor, 6=tam, 7=aux, 8=model,
-  // 9=entrada, 10=saida, 11=canal, 12=qtd, 13=cProd(input), 14=cMod(input),
-  // 15=cTotal, 16=vVenda(input), 17=taxa, 18=desc(input), 19=vFinal, 20=lucro
-  if(c.length<21)return;
+  // Cells: 0=#, 1=pedido, 2=tipo, 3=cod, 4=produto, 5=cor, 6=tam, 7=aux, 8=model, 9=vendedor,
+  // 10=entrada, 11=saida, 12=canal, 13=qtd, 14=cProd, 15=cMod, 16=cTotal, 17=vVenda, 18=taxa, 19=desc, 20=vFinal, 21=lucro
+  if(c.length<22)return;
   c[4].textContent=esc(p._prod)||'—';
   c[5].textContent=esc(p._cor)||'—';
   c[6].textContent=esc(p._tam)||'—';
-  c[15].textContent=fmt(p._cTot);
-  c[17].textContent=pct(p._tx);
-  c[19].textContent=fmt(p._vFinal);
-  c[20].textContent=fmt(p._lucro);
-  c[20].style.color=p._lucro<0?'var(--rd)':'var(--gn)';
+  c[16].textContent=fmt(p._cTot);
+  c[18].textContent=pct(p._tx);
+  c[20].textContent=fmt(p._vFinal);
+  c[21].textContent=fmt(p._lucro);
+  c[21].style.color=p._lucro<0?'var(--rd)':'var(--gn)';
   autoSave();
 }
 
@@ -370,8 +384,8 @@ function rPed(){
   rebIdx();
   const fv=saveFilters('fp');
   // Dynamic header with filter row
-  const thMain='<tr><th class="c" style="min-width:36px">#</th><th style="min-width:100px">Pedido</th><th class="c" style="min-width:50px">Tipo</th><th style="min-width:120px">Cód. Produto</th><th style="min-width:200px">Produto</th><th class="c" style="min-width:100px">Cor</th><th class="c" style="min-width:80px">Tam.</th><th class="c" style="min-width:100px">Auxiliar</th><th class="c" style="min-width:100px">Modelador</th><th class="c" style="min-width:115px">Entrada</th><th class="c" style="min-width:115px">Saída</th><th class="c" style="min-width:100px">Canal</th><th class="r" style="min-width:65px">Qtd</th><th class="r" style="min-width:90px">C.Prod (R$)</th><th class="r" style="min-width:90px">C.Model (R$)</th><th class="r" style="min-width:90px">C.Total (R$)</th><th class="r" style="min-width:100px">Vlr.Venda (R$)</th><th class="c" style="min-width:60px">Taxa</th><th class="r" style="min-width:80px">Desc. (R$)</th><th class="r" style="min-width:100px">Vlr.Final (R$)</th><th class="r" style="min-width:90px">Lucro (R$)</th><th class="c" style="min-width:120px">Status</th><th style="min-width:140px">Info</th><th class="c" style="min-width:65px">Ações</th></tr>';
-  const thFilter='<tr class="flt-row"><th></th><th><input id="fp-pedido" placeholder="Pedido" oninput="dFilterPed()"></th><th><select id="fp-tipo" oninput="dFilterPed()"><option value="">Todos</option>'+allTipos().map(t=>'<option>'+t+'</option>').join('')+'</select></th><th><input id="fp-cod" placeholder="Código" oninput="dFilterPed()"></th><th><input id="fp-produto" placeholder="Produto" oninput="dFilterPed()"></th><th><input id="fp-cor" placeholder="Cor" oninput="dFilterPed()"></th><th></th><th><input id="fp-auxiliar" placeholder="Auxiliar" oninput="dFilterPed()"></th><th><input id="fp-modelador" placeholder="Modelador" oninput="dFilterPed()"></th><th></th><th></th><th><select id="fp-canal" oninput="dFilterPed()"><option value="">Todos</option>'+CANAIS.map(ch=>`<option>${ch.nome}</option>`).join('')+'</select></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th><select id="fp-status" oninput="dFilterPed()"><option value="">Todos</option><option>Pendente</option><option>Em Produção</option><option>Pronto</option><option>Enviado</option><option>Entregue</option><option>Cancelado</option></select></th><th></th><th><button class="btn-del" onclick="clearFilters(\'fp\')" title="Limpar" style="font-size:9px">✕</button></th></tr>';
+  const thMain='<tr><th class="c" style="min-width:36px">#</th><th style="min-width:100px">Pedido</th><th class="c" style="min-width:50px">Tipo</th><th style="min-width:120px">Cód. Produto</th><th style="min-width:200px">Produto</th><th class="c" style="min-width:100px">Cor</th><th class="c" style="min-width:80px">Tam.</th><th class="c" style="min-width:100px">Auxiliar</th><th class="c" style="min-width:100px">Modelador</th><th class="c" style="min-width:100px">Vendedor</th><th class="c" style="min-width:115px">Entrada</th><th class="c" style="min-width:115px">Saída</th><th class="c" style="min-width:100px">Canal</th><th class="r" style="min-width:65px">Qtd</th><th class="r" style="min-width:90px">C.Prod (R$)</th><th class="r" style="min-width:90px">C.Model (R$)</th><th class="r" style="min-width:90px">C.Total (R$)</th><th class="r" style="min-width:100px">Vlr.Venda (R$)</th><th class="c" style="min-width:60px">Taxa</th><th class="r" style="min-width:80px">Desc. (R$)</th><th class="r" style="min-width:100px">Vlr.Final (R$)</th><th class="r" style="min-width:90px">Lucro (R$)</th><th class="c" style="min-width:120px">Status</th><th style="min-width:140px">Info</th><th class="c" style="min-width:65px">Ações</th></tr>';
+  const thFilter='<tr class="flt-row"><th></th><th><input id="fp-pedido" placeholder="Pedido" oninput="dFilterPed()"></th><th><select id="fp-tipo" oninput="dFilterPed()"><option value="">Todos</option>'+allTipos().map(t=>'<option>'+t+'</option>').join('')+'</select></th><th><input id="fp-cod" placeholder="Código" oninput="dFilterPed()"></th><th><input id="fp-produto" placeholder="Produto" oninput="dFilterPed()"></th><th><input id="fp-cor" placeholder="Cor" oninput="dFilterPed()"></th><th></th><th><input id="fp-auxiliar" placeholder="Auxiliar" oninput="dFilterPed()"></th><th><input id="fp-modelador" placeholder="Modelador" oninput="dFilterPed()"></th><th><input id="fp-vendedor" placeholder="Vendedor" oninput="dFilterPed()"></th><th></th><th></th><th><select id="fp-canal" oninput="dFilterPed()"><option value="">Todos</option>'+CANAIS.map(ch=>`<option>${ch.nome}</option>`).join('')+'</select></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th><select id="fp-status" oninput="dFilterPed()"><option value="">Todos</option><option>Pendente</option><option>Em Produção</option><option>Pronto</option><option>Enviado</option><option>Entregue</option><option>Cancelado</option></select></th><th></th><th><button class="btn-del" onclick="clearFilters(\'fp\')" title="Limpar" style="font-size:9px">✕</button></th></tr>';
   document.getElementById('ped-thead').innerHTML=thMain+thFilter;
 
   const tb=document.getElementById('t-ped');tb.innerHTML='';const fg=document.createDocumentFragment();
@@ -389,6 +403,7 @@ function rPed(){
     tr.dataset.cor=(p._cor||'').toLowerCase();
     tr.dataset.auxiliar=(p.auxiliar||'').toLowerCase();
     tr.dataset.modelador=(p.modelador||'').toLowerCase();
+    tr.dataset.vendedor=(p.vendedor||'').toLowerCase();
     tr.dataset.canal=(p.canal||'').toLowerCase();
     tr.dataset.status=(p.status||'').toLowerCase();
     tr.innerHTML=`<td class="rn">${i+1}</td>
@@ -400,6 +415,7 @@ function rPed(){
       <td class="fc" style="color:var(--txd);text-align:center">${esc(p._tam)||'—'}</td>
       <td class="c"><input value="${esc(p.auxiliar)}" placeholder="-" oninput="PED[${i}].auxiliar=this.value" onblur="autoSave()"></td>
       <td class="c"><input value="${esc(p.modelador)}" placeholder="-" oninput="PED[${i}].modelador=this.value" onblur="autoSave()"></td>
+      <td class="c"><input value="${esc(p.vendedor||'')}" placeholder="-" oninput="PED[${i}].vendedor=this.value" onblur="autoSave()"></td>
       <td class="c"><input type="date" value="${p.entrada}" onchange="PED[${i}].entrada=this.value;autoSave()"></td>
       <td class="c"><input type="date" value="${p.saida}" onchange="PED[${i}].saida=this.value;autoSave()"></td>
       <td class="c"><select onchange="PED[${i}].canal=this.value;rPed()"><option value="">-</option>${CANAIS.map(ch=>`<option value="${ch.nome}"${p.canal===ch.nome?' selected':''}>${ch.nome}</option>`).join('')}</select></td>
@@ -523,6 +539,61 @@ function rAux(){
   document.getElementById('ax-rk-b').innerHTML=ns.map((n,i)=>{
     const d=mp[n],meta=getMetaFor(n),funcao=getFuncaoFor(n),h=meta>0&&d.tot>=meta,bon=Math.max(d.tot-meta,0)*.1;
     return`<tr><td class="rn" style="font-weight:700">${i+1}º</td><td style="padding:7px 9px;font-weight:600">${esc(n)}</td><td style="padding:7px 9px;color:var(--txd)">${esc(funcao)||'—'}</td><td class="v">${meta?fmt(meta):'—'}</td><td class="v">${fmt(d.tot)}</td><td class="v" style="color:${h?'var(--gn)':'var(--txm)'}">${h?fmt(bon):'—'}</td><td class="st-cell"><span class="st ${h?stCls('Pronto'):stCls('Pendente')}">${h?'Sim':meta?'Não':'—'}</span></td></tr>`}).join('');
+}
+
+// ═══ VENDEDORES & METAS DE VENDAS ═══
+function addVend(){VEND.push({nome:'',meta:10000});rVendList()}
+function delVend(i){if(confirm('Excluir '+(VEND[i].nome||'vendedor')+'?')){VEND.splice(i,1);rVendList()}}
+function rVendList(){
+  const tb=document.getElementById('t-vend');tb.innerHTML='';
+  VEND.forEach((v,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="rn">${i+1}</td>
+      <td><input value="${esc(v.nome)}" placeholder="Nome" oninput="VEND[${i}].nome=this.value" onblur="autoSave()"></td>
+      <td class="r"><input type="number" value="${v.meta||''}" placeholder="10000" step="500" oninput="VEND[${i}].meta=+this.value||0" onblur="autoSave()" style="width:100px"></td>
+      <td class="c"><button class="btn-del" onclick="delVend(${i})">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('c-vend').textContent=VEND.length+' vendedores';
+  autoSave();
+}
+
+function getMetaVend(nome){
+  const v=VEND.find(v=>(v.nome||'').trim().toLowerCase()===(nome||'').trim().toLowerCase());
+  return v?v.meta||0:0;
+}
+
+function rVend(){
+  const all=allP();rebIdx();all.forEach(calcP);
+  const m=document.getElementById('vd-mes').value,tit=MS[m]+'/'+ANO;
+  const fil=all.filter(p=>{if(!FINS.includes(p.status))return false;const d=p.saida||p.entrada;return d&&d.startsWith(ANO+'-'+m)});
+  // Group by vendedor, sum Vlr.Final
+  const mp={};
+  fil.forEach(p=>{const v=(p.vendedor||'').trim();if(!v||v==='-')return;if(!mp[v])mp[v]={tot:0,n:0};mp[v].tot+=(p._vFinal||0);mp[v].n++});
+  // Include registered vendedores with no sales
+  VEND.forEach(v=>{const n=(v.nome||'').trim();if(n&&!mp[n])mp[n]={tot:0,n:0}});
+
+  const ns=Object.keys(mp).sort((a,b)=>mp[b].tot-mp[a].tot);
+  const tG=ns.reduce((s,n)=>s+mp[n].tot,0);
+  const tB=ns.reduce((s,n)=>{const meta=getMetaVend(n);return s+Math.max(mp[n].tot-meta,0)*.1},0);
+  const bt=ns.filter(n=>{const meta=getMetaVend(n);return meta>0&&mp[n].tot>=meta}).length;
+
+  document.getElementById('vd-sum').innerHTML=`<div class="ax-si"><div class="ax-sl">Período</div><div class="ax-sv" style="font-size:12px;font-family:var(--f)">${tit}</div></div><div class="ax-si"><div class="ax-sl">Vendedores</div><div class="ax-sv">${ns.length}</div></div><div class="ax-si"><div class="ax-sl">Vendas Total</div><div class="ax-sv" style="color:var(--gn)">${fmt(tG)}</div></div><div class="ax-si"><div class="ax-sl">Metas Batidas</div><div class="ax-sv">${bt}/${ns.filter(n=>getMetaVend(n)>0).length}</div></div><div class="ax-si"><div class="ax-sl">Total Bônus</div><div class="ax-sv" style="color:${tB?'var(--yl)':'var(--txm)'}">${tB?fmt(tB):'—'}</div></div>`;
+
+  const area=document.getElementById('vd-cards');
+  if(!ns.length){area.innerHTML=`<div class="empty"><div class="empty-i">🛒</div><div class="empty-t">Sem dados para ${tit}</div><div class="empty-s">Cadastre vendedores e preencha o campo Vendedor nos pedidos.</div></div>`;document.getElementById('vd-rk-t').textContent=tit;document.getElementById('vd-rk-b').innerHTML='';return}
+
+  area.innerHTML=ns.map(n=>{
+    const d=mp[n],meta=getMetaVend(n);
+    const r=meta>0?d.tot/meta:0,h=meta>0&&d.tot>=meta,fl=Math.max(meta-d.tot,0),exc=Math.max(d.tot-meta,0),bon=exc*.1;
+    let fc='pf-lo';if(r>=1)fc='pf-dn';else if(r>=.7)fc='pf-hi';else if(r>=.4)fc='pf-mi';
+    const noMeta=meta<=0;
+    return`<div class="ax-c${h?' hit':''}"><div class="ax-ch"><div class="ax-cn">${esc(n)}</div><div class="ax-tg ${h?'tg-ok':noMeta?'tg-no':'tg-no'}">${h?'✓ Batida':noMeta?'Sem meta':'Andamento'}</div></div><div class="ax-sts"><div><div class="ax-sl2">Vendas</div><div class="ax-sv2" style="color:${h?'var(--gn)':'var(--tx)'}">${fmt(d.tot)}</div></div><div><div class="ax-sl2">Itens</div><div class="ax-sv2">${d.n}</div></div><div><div class="ax-sl2">Meta</div><div class="ax-sv2" style="color:var(--txd)">${meta?fmt(meta):'—'}</div></div><div><div class="ax-sl2">Bônus</div><div class="ax-sv2" style="color:${bon?'var(--yl)':'var(--txm)'}">${bon?fmt(bon):'—'}</div></div></div>${meta>0?`<div class="pb"><div class="pf ${fc}" style="width:${Math.min(r*100,100).toFixed(1)}%"></div></div><div class="pi"><span class="pp${h?' ok':''}">${(r*100).toFixed(1)}%</span><span class="pm">Meta: ${fmt(meta)}</span></div>${!h?`<div class="pfl">Faltam ${fmt(fl)}</div>`:''}`:''}<div class="bb"><span class="bb-i">${h?'🏆':noMeta?'📋':'⏳'}</span><span class="bb-t ${h?'bb-y':'bb-n'}">${h?'Bônus liberado':noMeta?'Meta não definida':'Pendente'}</span>${h?`<span class="bb-v">${fmt(bon)}</span>`:''}</div></div>`}).join('');
+
+  document.getElementById('vd-rk-t').textContent=tit;
+  document.getElementById('vd-rk-b').innerHTML=ns.map((n,i)=>{
+    const d=mp[n],meta=getMetaVend(n),h=meta>0&&d.tot>=meta,bon=Math.max(d.tot-meta,0)*.1;
+    return`<tr><td class="rn" style="font-weight:700">${i+1}º</td><td style="padding:7px 9px;font-weight:600">${esc(n)}</td><td class="v">${meta?fmt(meta):'—'}</td><td class="v">${fmt(d.tot)}</td><td class="v" style="color:${h?'var(--gn)':'var(--txm)'}">${h?fmt(bon):'—'}</td><td class="st-cell"><span class="st ${h?stCls('Pronto'):stCls('Pendente')}">${h?'Sim':meta?'Não':'—'}</span></td></tr>`}).join('');
 }
 
 // ═══ DASHBOARD ═══
@@ -2945,9 +3016,9 @@ function initApp(){
   // Build arc-canal filter
   document.getElementById('arc-canal').innerHTML='<option value="">Todos</option>'+CANAIS.map(ch=>`<option>${ch.nome}</option>`).join('');
   const m=String(new Date().getMonth()+1).padStart(2,'0');
-  document.getElementById('ax-mes').value=m;document.getElementById('desp-mes').value=m;
+  document.getElementById('ax-mes').value=m;document.getElementById('desp-mes').value=m;document.getElementById('vd-mes').value=m;
   updateExample();
-  rCat();rPed();rDesp();rFunc();
+  rCat();rPed();rDesp();rFunc();rVendList();
 }
 
 function updateExample(){
